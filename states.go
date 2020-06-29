@@ -59,10 +59,6 @@ func (i *intro) Draw(e *Engine, screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f", ebiten.CurrentFPS()))
 }
 
-func (i *intro) Layout(ow, oh int) (int, int) {
-	return WIDTH, HEIGHT
-}
-
 type pause struct {
 	text        *ebiten.Image
 	audioPlayer *audio.Player
@@ -99,8 +95,4 @@ func (p *pause) Draw(e *Engine, screen *ebiten.Image) {
 	o := &ebiten.DrawImageOptions{}
 	o.GeoM.Translate(WIDTH/2, HEIGHT/2)
 	screen.DrawImage(p.text, o)
-}
-
-func (p *pause) Layout(ow, oh int) (int, int) {
-	return WIDTH, HEIGHT
 }
