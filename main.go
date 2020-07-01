@@ -13,12 +13,15 @@ const (
 
 func main() {
 	e := new(Engine)
-	e.Init("jayarrpeegee", WIDTH*2, HEIGHT*2)
+	err := e.Init("jayarrpeegee", WIDTH*2, HEIGHT*2)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	i := new(intro)
 	e.PushState(i)
 
-	if err := e.Run(); err != nil {
+	if err = e.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

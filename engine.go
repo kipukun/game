@@ -1,6 +1,11 @@
 package main
 
 import (
+	"io/ioutil"
+
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
+
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
 )
@@ -18,13 +23,27 @@ type State interface {
 type Engine struct {
 	states   []State
 	audioCtx *audio.Context
+	tf       font.Face
 }
 
 // Init initializes the game window.
-func (e *Engine) Init(name string, w, h int) {
+func (e *Engine) Init(name string, w, h int) error {
 	e.audioCtx, _ = audio.NewContext(SAMPLERATE)
 	ebiten.SetWindowTitle(name)
 	ebiten.SetWindowSize(w, h)
+	ttf, err := ioutil.ReadFile(`fonts\font.ttf`)
+	if err != nil {
+		return err
+	}
+	tt, err := truetype.Parse(ttf)
+	if err != nil {
+		return err
+	}
+	e.tf = truetype.NewFace(tt, &truetype.Options{
+		Size: 9,
+		DPI:  72,
+	})
+	return nil
 }
 
 // ChangeState sets the currently running state to s.
