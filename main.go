@@ -2,23 +2,25 @@ package main
 
 import (
 	"log"
+
+	"github.com/kipukun/game/engine"
+	"github.com/kipukun/game/states"
 )
 
 const (
 	WIDTH      = 320
 	HEIGHT     = 240
-	TILESIZE   = 16
 	SAMPLERATE = 44100
 )
 
 func main() {
-	e := new(Engine)
-	err := e.Init("jayarrpeegee", WIDTH*2, HEIGHT*2)
+	e := new(engine.Engine)
+	err := e.Init("jayarrpeegee", WIDTH, HEIGHT, SAMPLERATE)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	i := new(intro)
+	i := new(states.PlayState)
 	e.PushState(i)
 
 	if err = e.Run(); err != nil {

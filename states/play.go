@@ -1,11 +1,11 @@
-package main
+package states
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	_ "image/png"
 	"log"
-	"math"
 	"os"
 
 	"github.com/hajimehoshi/ebiten"
@@ -14,59 +14,60 @@ import (
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/hajimehoshi/ebiten/text"
+	"github.com/kipukun/game/engine"
+	"github.com/markbates/pkger"
 )
 
-type intro struct {
-	grass, cloud, dude *ebiten.Image
-	num                int
-	audioPlayer        *audio.Player
+type PlayState struct {
+	cloud       *ebiten.Image
+	audioPlayer *audio.Player
 }
 
-func (i *intro) Init(e *Engine) {
-	i.grass, _, _ = ebitenutil.NewImageFromFile(`sprites\grass.png`, ebiten.FilterDefault)
-	i.cloud, _, _ = ebitenutil.NewImageFromFile(`sprites\cloud.png`, ebiten.FilterDefault)
-	i.dude, _, _ = ebitenutil.NewImageFromFile(`sprites\alman.png`, ebiten.FilterDefault)
-	i.num = int(math.Floor(WIDTH / TILESIZE))
-	f, err := os.Open(`audio\pause.wav`)
+func (p *PlayState) Init(e *engine.Engine) {
+	f, err := pkger.Open("/assets/sprites/cloud.png")
 	if err != nil {
 		log.Fatal(err)
 	}
-	d, err := wav.Decode(e.audioCtx, f)
+	defer f.Close()
+	img, _, err := image.Decode(f)
 	if err != nil {
 		log.Fatal(err)
 	}
-	i.audioPlayer, err = audio.NewPlayer(e.audioCtx, d)
+	p.cloud, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+	fd, err := pkger.Open("/assets/audio/pause.wav")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fd.Close()
+	d, err := wav.Decode(e.AudioCtx(), fd)
+	if err != nil {
+		log.Fatal(err)
+	}
+	p.audioPlayer, err = audio.NewPlayer(e.AudioCtx(), d)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (i *intro) Update(e *Engine) error {
+func (p *PlayState) Update(e *engine.Engine) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		i.audioPlayer.Pause()
-		i.audioPlayer.Rewind()
-		i.audioPlayer.Play()
-		e.PushState(new(menu))
+		p.audioPlayer.Pause()
+		p.audioPlayer.Rewind()
+		p.audioPlayer.Play()
+		// e.PushState(new(MenuState))
 	}
 	return nil
 }
 
-func (i *intro) Draw(e *Engine, screen *ebiten.Image) {
+func (p *PlayState) Draw(e *engine.Engine, screen *ebiten.Image) {
+	w, h := e.Size()
 	co := &ebiten.DrawImageOptions{}
-	co.GeoM.Translate(WIDTH/2, HEIGHT/4)
-	screen.DrawImage(i.cloud, co)
-	do := &ebiten.DrawImageOptions{}
-	do.GeoM.Translate(WIDTH/2, (HEIGHT/1.5)-TILESIZE*2)
-	screen.DrawImage(i.dude, do)
-	for j := 0; j < i.num; j++ {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(j*TILESIZE), HEIGHT/1.5)
-		screen.DrawImage(i.grass, op)
-	}
+	co.GeoM.Translate(w/2, h/4)
+	screen.DrawImage(p.cloud, co)
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f", ebiten.CurrentFPS()))
 }
 
-type menu struct {
+type MenuState struct {
 	sidebg             *ebiten.Image
 	audio              map[string]*audio.Player
 	pos, vel, friction float64
@@ -79,7 +80,7 @@ type menu struct {
 	}
 }
 
-func (m *menu) Init(e *Engine) {
+func (m *MenuState) Init(e *engine.Engine) {
 	m.vel = 20
 	m.friction = 0.75
 	m.options = []string{"Equip", "Items", "Skills", "Map", "System"}
@@ -94,18 +95,18 @@ func (m *menu) Init(e *Engine) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		d, err := wav.Decode(e.audioCtx, f)
+		d, err := wav.Decode(e.AudioCtx(), f)
 		if err != nil {
 			log.Fatal(err)
 		}
-		m.audio[k], err = audio.NewPlayer(e.audioCtx, d)
+		m.audio[k], err = audio.NewPlayer(e.AudioCtx(), d)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func (m *menu) Update(e *Engine) error {
+func (m *MenuState) Update(e *engine.Engine) error {
 	m.pos += m.vel
 	m.vel *= m.friction
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
@@ -141,19 +142,20 @@ func (m *menu) Update(e *Engine) error {
 	return nil
 }
 
-func (m *menu) Draw(e *Engine, screen *ebiten.Image) {
+func (m *MenuState) Draw(e *engine.Engine, screen *ebiten.Image) {
+	w, _ := e.Size()
 	o := &ebiten.DrawImageOptions{}
 	offset := 32
 	sw, sh := m.sidebg.Size()
 	img, _ := ebiten.NewImage(sw, sh, ebiten.FilterDefault)
 	img.DrawImage(m.sidebg, o)
 	for i, option := range m.options {
-		text.Draw(img, option, e.tf, sw/2-TILESIZE, sh/4+(offset*i), color.White)
+		text.Draw(img, option, e.Font(), sw/2-engine.TileSize, sh/4+(offset*i), color.White)
 	}
 	bord := &ebiten.DrawImageOptions{}
 	bord.GeoM.Translate(float64(sw/2-24), float64(sh/4)-11)
 	img.DrawImage(m.sel.border, bord)
-	o.GeoM.Translate(WIDTH-m.pos, -TILESIZE)
+	o.GeoM.Translate(w-m.pos, -engine.TileSize)
 	screen.DrawImage(img, o)
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %0.2f", ebiten.CurrentFPS()))
 }
