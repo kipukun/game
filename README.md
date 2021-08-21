@@ -6,6 +6,6 @@ lets have fun!
 
 # to build 
 
-first install pkger, then run it in the root, then go build
+`go build`
 
 this will create a standalone binary to distribute
