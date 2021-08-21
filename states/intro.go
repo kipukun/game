@@ -6,7 +6,6 @@ import (
 	"github.com/hajimehoshi/ebiten/audio"
 	"github.com/hajimehoshi/ebiten/audio/wav"
 	"github.com/kipukun/game/engine"
-	"github.com/markbates/pkger"
 )
 
 type IntroState struct {
@@ -14,11 +13,10 @@ type IntroState struct {
 }
 
 func (i *IntroState) Init(e *engine.Engine) {
-	fd, err := pkger.Open("/assets/audio/lebron_james.wav")
+	fd, err := e.Asset("assets/audio/lebron_james.wav")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer fd.Close()
 	d, err := wav.Decode(e.AudioCtx(), fd)
 	if err != nil {
 		log.Fatal(err)
