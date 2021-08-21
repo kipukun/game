@@ -1,19 +1,28 @@
 package engine
 
 import (
+	"bytes"
+	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 
 	"github.com/golang/freetype/truetype"
-	"github.com/markbates/pkger"
 	"golang.org/x/image/font"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
 )
 
-// TileSize is the size in pixels of each side of a tile.
-// A tile is not necessary, but helps keep graphics consistent in size.
+type Bytes struct {
+	*bytes.Reader
+}
+
+func (b *Bytes) Close() error {
+	return nil
+}
+
+// TileSize is the square size in pixels of a tile.
 const TileSize = 16
 
 // State defines the state of the game engine at some time.
@@ -27,10 +36,23 @@ type State interface {
 // Engine is the main game engine, which implements
 // the ebiten.Game interface and maintains a stack of states.
 type Engine struct {
-	states                              []State
-	audioCtx                            *audio.Context
-	tf                                  font.Face
-	width, height, tilesize, samplerate int
+	fs                        fs.FS
+	states                    []State
+	audioCtx                  *audio.Context
+	tf                        font.Face
+	width, height, samplerate int
+}
+
+func (e *Engine) Assets(fs fs.FS) {
+	e.fs = fs
+}
+
+func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
+	bs, err := fs.ReadFile(e.fs, path)
+	if err != nil {
+		return nil, err
+	}
+	return &Bytes{bytes.NewReader(bs)}, nil
 }
 
 // AudioCtx returns the engine's audio context.
@@ -53,9 +75,8 @@ func (e *Engine) Init(name string, w, h, sr int) error {
 	ebiten.SetWindowTitle(name)
 	ebiten.SetWindowSize(w*2, h*2)
 	e.width, e.height, e.samplerate = w, h, sr
-	e.tilesize = 16
 
-	f, err := pkger.Open("/assets/fonts/font.ttf")
+	f, err := e.fs.Open("assets/fonts/font.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
