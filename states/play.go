@@ -5,17 +5,16 @@ import (
 	_ "image/png"
 	"log"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/audio"
-	"github.com/hajimehoshi/ebiten/audio/wav"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
-	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 )
 
 type PlayState struct {
-	player      object.Object
+	player      object.ImageObject
 	audioPlayer *audio.Player
 }
 
@@ -29,15 +28,7 @@ func (p *PlayState) Init(e *engine.Engine) {
 	w, h := e.Size()
 	p.player.SetPosition(w/2, h/2)
 
-	fd, err := e.Asset("assets/audio/pause.wav")
-	if err != nil {
-		log.Fatal(err)
-	}
-	d, err := wav.Decode(e.AudioCtx(), fd)
-	if err != nil {
-		log.Fatal(err)
-	}
-	p.audioPlayer, err = audio.NewPlayer(e.AudioCtx(), d)
+	p.audioPlayer, err = e.Player("assets/audio/pause.wav")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,6 +39,7 @@ func (p *PlayState) Update(e *engine.Engine) error {
 	_, h := e.Size()
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		p.player.SetVelocity(0, -2)
+		p.audioPlayer.Play()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
 		p.player.SetVelocity(2, 0)

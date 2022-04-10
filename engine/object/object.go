@@ -2,10 +2,19 @@ package object
 
 import (
 	"image"
+	"image/color"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/kipukun/game/engine"
 )
+
+// An ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
+type ImageObject interface {
+	Object
+
+	Image() (*ebiten.Image, *ebiten.DrawImageOptions)
+}
 
 // Object represents some in-game object, with some
 // bounding box and an ability to update its position.
@@ -14,14 +23,23 @@ type Object interface {
 	Size() (width, height int)
 	Pos() (x, y float64)
 
+	GetPosition() (x, y float64)
+	GetVelocity() (dx, dy float64)
+	GetAcceleration() (ddx, ddy float64)
+
 	SetPosition(x, y float64)
 	SetVelocity(dx, dy float64)
 	SetAcceleration(ddx, ddy float64)
-
-	Image() (*ebiten.Image, *ebiten.DrawImageOptions)
 }
 
-func FromAsset(e *engine.Engine, p string) (Object, error) {
+// FromText returns an ImageObject that is rendered using the engine's font and the supplied text.
+func FromText(e *engine.Engine, t string, c color.Color) (ImageObject, error) {
+	i := new(imgobj)
+	text.Draw(i.img, t, e.Font(), 0, 0, c)
+	return i, nil
+}
+
+func FromAsset(e *engine.Engine, p string) (ImageObject, error) {
 	i := new(imgobj)
 	f, err := e.Asset(p)
 	if err != nil {
@@ -31,10 +49,7 @@ func FromAsset(e *engine.Engine, p string) (Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	i.img, err = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
-	if err != nil {
-		return nil, err
-	}
+	i.img = ebiten.NewImageFromImage(img)
 	return i, nil
 
 }
@@ -59,6 +74,17 @@ func (i *imgobj) Size() (int, int) {
 
 func (i *imgobj) Pos() (float64, float64) {
 	return i.x, i.y
+}
+
+func (i *imgobj) GetPosition() (x, y float64) {
+	return i.x, i.y
+}
+
+func (i *imgobj) GetVelocity() (dx, dy float64) {
+	return i.dx, i.dy
+}
+func (i *imgobj) GetAcceleration() (ddx, ddy float64) {
+	return i.dx, i.dy
 }
 
 func (i *imgobj) SetPosition(x, y float64) {

@@ -1,12 +1,10 @@
 package states
 
 import (
-	"fmt"
 	"log"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/audio"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/kipukun/game/engine"
 )
 
@@ -28,5 +26,5 @@ func (i *IntroState) Update(e *engine.Engine) error {
 }
 
 func (i *IntroState) Draw(e *engine.Engine, s *ebiten.Image) {
-	ebitenutil.DebugPrint(s, fmt.Sprintf("FPS: %0.2f", ebiten.CurrentFPS()))
+
 }

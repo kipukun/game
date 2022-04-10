@@ -10,9 +10,8 @@ import (
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/audio"
-	"github.com/hajimehoshi/ebiten/audio/wav"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
 type Bytes struct {
@@ -60,13 +59,13 @@ func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
 func (e *Engine) Player(path string) (*audio.Player, error) {
 	fd, err := e.Asset(path)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	d, err := wav.Decode(e.AudioCtx(), fd)
+	bs, err := ioutil.ReadAll(fd)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return audio.NewPlayer(e.AudioCtx(), d)
+	return e.AudioCtx().NewPlayerFromBytes(bs), nil
 }
 
 // AudioCtx returns the engine's audio context.
@@ -85,12 +84,13 @@ func (e *Engine) Size() (float64, float64) {
 
 // Init initializes the game window.
 func (e *Engine) Init(name string, w, h, sr int) error {
-	e.audioCtx, _ = audio.NewContext(sr)
+	var err error
+	e.audioCtx = audio.NewContext(sr)
 	ebiten.SetWindowTitle(name)
 	ebiten.SetWindowSize(w*2, h*2)
 	e.width, e.height, e.samplerate = w, h, sr
 
-	f, err := e.fs.Open("assets/fonts/font.ttf")
+	f, err := e.fs.Open("assets/fonts/square.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func (e *Engine) PopState() {
 }
 
 // Update implements ebiten.Game
-func (e *Engine) Update(screen *ebiten.Image) error {
+func (e *Engine) Update() error {
 	// let the current state draw to the screen.
 	return e.states[len(e.states)-1].Update(e)
 }
