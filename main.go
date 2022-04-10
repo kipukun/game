@@ -25,7 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	i := new(states.PlayState)
+	i := new(states.IntroState)
 	e.PushState(i)
 
 	if err = e.Run(); err != nil {

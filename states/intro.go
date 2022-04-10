@@ -1,10 +1,12 @@
 package states
 
 import (
+	"fmt"
 	"log"
 
+	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
-	"github.com/hajimehoshi/ebiten/audio/wav"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/kipukun/game/engine"
 )
 
@@ -13,16 +15,18 @@ type IntroState struct {
 }
 
 func (i *IntroState) Init(e *engine.Engine) {
-	fd, err := e.Asset("assets/audio/lebron_james.wav")
+	var err error
+	i.music, err = e.Player("assets/audio/lebron_james.wav")
 	if err != nil {
 		log.Fatal(err)
 	}
-	d, err := wav.Decode(e.AudioCtx(), fd)
-	if err != nil {
-		log.Fatal(err)
-	}
-	i.music, err = audio.NewPlayer(e.AudioCtx(), d)
-	if err != nil {
-		log.Fatal(err)
-	}
+	i.music.Play()
+}
+
+func (i *IntroState) Update(e *engine.Engine) error {
+	return nil
+}
+
+func (i *IntroState) Draw(e *engine.Engine, s *ebiten.Image) {
+	ebitenutil.DebugPrint(s, fmt.Sprintf("FPS: %0.2f", ebiten.CurrentFPS()))
 }

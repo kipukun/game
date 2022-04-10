@@ -12,6 +12,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
+	"github.com/hajimehoshi/ebiten/audio/wav"
 )
 
 type Bytes struct {
@@ -53,6 +54,19 @@ func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
 		return nil, err
 	}
 	return &Bytes{bytes.NewReader(bs)}, nil
+}
+
+// Player is a helper method to give an audio.Player from a wav asset.
+func (e *Engine) Player(path string) (*audio.Player, error) {
+	fd, err := e.Asset(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	d, err := wav.Decode(e.AudioCtx(), fd)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return audio.NewPlayer(e.AudioCtx(), d)
 }
 
 // AudioCtx returns the engine's audio context.
