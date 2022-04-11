@@ -3,15 +3,10 @@ package object
 import (
 	"image"
 	"image/color"
-	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/kipukun/game/engine"
-)
-
-var (
-	NoChange float64 = math.Inf(1)
 )
 
 // An ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
