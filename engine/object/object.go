@@ -3,10 +3,15 @@ package object
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/kipukun/game/engine"
+)
+
+var (
+	NoChange float64 = math.Inf(1)
 )
 
 // An ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
@@ -33,10 +38,12 @@ type Object interface {
 }
 
 // FromText returns an ImageObject that is rendered using the engine's font and the supplied text.
-func FromText(e *engine.Engine, t string, c color.Color) (ImageObject, error) {
+func FromText(e *engine.Engine, t string, c color.Color) ImageObject {
 	i := new(imgobj)
-	text.Draw(i.img, t, e.Font(), 0, 0, c)
-	return i, nil
+	r := text.BoundString(e.Font(), t)
+	i.img = ebiten.NewImage(r.Dx(), r.Dy())
+	text.Draw(i.img, t, e.Font(), 0, r.Dy(), c)
+	return i
 }
 
 func FromAsset(e *engine.Engine, p string) (ImageObject, error) {

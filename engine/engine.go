@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 
 	"github.com/golang/freetype/truetype"
@@ -61,7 +60,7 @@ func (e *Engine) Player(path string) (*audio.Player, error) {
 	if err != nil {
 		return nil, err
 	}
-	bs, err := ioutil.ReadAll(fd)
+	bs, err := io.ReadAll(fd)
 	if err != nil {
 		return nil, err
 	}
@@ -90,13 +89,13 @@ func (e *Engine) Init(name string, w, h, sr int) error {
 	ebiten.SetWindowSize(w*2, h*2)
 	e.width, e.height, e.samplerate = w, h, sr
 
-	f, err := e.fs.Open("assets/fonts/square.ttf")
+	f, err := e.fs.Open("assets/fonts/font.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
-	ttf, err := ioutil.ReadAll(f)
+	ttf, err := io.ReadAll(f)
 	if err != nil {
 		log.Fatal(err)
 	}
