@@ -7,7 +7,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 )
@@ -54,27 +53,13 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	nx, _ := object.CenterH(w, its.title.O)
 	its.title.O.SetPosition(nx, h)
 
+	e.RegisterKey(ebiten.KeyArrowDown, its.menudown)
+	e.RegisterKey(ebiten.KeyArrowUp, its.menuup)
+
 	its.music.Play()
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine) error {
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
-		its.menu_move.Play()
-		if its.index+1 > len(its.menu)-1 {
-			its.index = 0
-		} else {
-			its.index += 1
-		}
-		its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
-		its.menu_move.Play()
-		if its.index-1 < 0 {
-			its.index = len(its.menu) - 1
-		} else {
-			its.index -= 1
-		}
-		its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
-	}
 	its.title.Calculate(func() {
 		for _, o := range its.menu {
 			o.Calculate(nil)
@@ -91,4 +76,24 @@ func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
 	}
 	s.DrawImage(its.pointer.Image())
 	ebitenutil.DebugPrint(s, fmt.Sprintf("%d", its.index))
+}
+
+func (its *IntroTitleState) menudown() {
+	its.menu_move.Play()
+	if its.index+1 > len(its.menu)-1 {
+		its.index = 0
+	} else {
+		its.index += 1
+	}
+	its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
+}
+
+func (its *IntroTitleState) menuup() {
+	its.menu_move.Play()
+	if its.index-1 < 0 {
+		its.index = len(its.menu) - 1
+	} else {
+		its.index -= 1
+	}
+	its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
 }
