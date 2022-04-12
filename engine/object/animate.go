@@ -16,13 +16,13 @@ const (
 )
 
 type Fader struct {
-	img ImageObject
-	t   float64
+	ImageObject
+	t float64
 }
 
 func NewFader(img ImageObject) *Fader {
 	f := new(Fader)
-	f.img = img
+	f.ImageObject = img
 	return f
 }
 
@@ -34,7 +34,7 @@ func (f *Fader) Calculate(callback func()) {
 }
 
 func (f *Fader) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
-	img, o := f.img.Image()
+	img, o := f.ImageObject.Image()
 	o.ColorM.Translate(0, 0, 0, -1+f.t)
 	return img, o
 }

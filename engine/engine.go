@@ -5,12 +5,14 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"sync"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
 type Bytes struct {
@@ -42,6 +44,20 @@ type Engine struct {
 	width, height, samplerate int
 }
 
+// AudioPlayer is a concurrent-safe wrapper around an audio.Player.
+type AudioPlayer struct {
+	mu sync.Mutex
+	p  *audio.Player
+}
+
+func (ap *AudioPlayer) Play() {
+	ap.mu.Lock()
+	ap.p.Pause()
+	ap.p.Rewind()
+	ap.p.Play()
+	ap.mu.Unlock()
+}
+
 func (e *Engine) Assets(fs fs.FS) {
 	e.fs = fs
 }
@@ -55,7 +71,7 @@ func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
 }
 
 // Player is a helper method to give an audio.Player from a wav asset.
-func (e *Engine) Player(path string) (*audio.Player, error) {
+func (e *Engine) Player(path string) (*AudioPlayer, error) {
 	fd, err := e.Asset(path)
 	if err != nil {
 		return nil, err
@@ -64,7 +80,16 @@ func (e *Engine) Player(path string) (*audio.Player, error) {
 	if err != nil {
 		return nil, err
 	}
-	return e.AudioCtx().NewPlayerFromBytes(bs), nil
+	mp3, err := mp3.DecodeWithSampleRate(e.samplerate, bytes.NewReader(bs))
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := e.AudioCtx().NewPlayer(mp3)
+	if err != nil {
+		return nil, err
+	}
+	return &AudioPlayer{p: p}, nil
 }
 
 // AudioCtx returns the engine's audio context.

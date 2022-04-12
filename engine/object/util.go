@@ -22,3 +22,11 @@ func Middle(w, h float64, o Object) (float64, float64) {
 	CenterV(h, o)
 	return o.GetPosition()
 }
+
+// Offset offsets o from from by n pixels in d direction.
+func Offset(o, from Object, n float64, d Direction) (float64, float64) {
+	fromx, _ := from.GetPosition()
+	_, y := o.GetPosition()
+	o.SetPosition(fromx-n, y)
+	return fromx - n, y
+}
