@@ -12,12 +12,12 @@ import (
 )
 
 type IntroTitleState struct {
-	music, menu_move *engine.AudioPlayer
-	title            *object.Easer[object.ImageObject]
-	menu             []*object.Fader
-	pointer          *object.Fader
-	px, py           float64
-	index            int
+	music, menu_move, sel *engine.AudioPlayer
+	title                 *object.Easer[object.ImageObject]
+	menu                  []*object.Fader
+	pointer               *object.Fader
+	px, py                float64
+	index                 int
 }
 
 func (its *IntroTitleState) Init(e *engine.Engine) {
@@ -27,6 +27,10 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		log.Fatal(err)
 	}
 	its.menu_move, err = e.Player("assets/audio/menu_move.mp3")
+	if err != nil {
+		log.Fatal(err)
+	}
+	its.sel, err = e.Player("assets/audio/select.mp3")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,6 +59,10 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 
 	e.RegisterKey(ebiten.KeyArrowDown, its.menudown)
 	e.RegisterKey(ebiten.KeyArrowUp, its.menuup)
+	e.RegisterKey(ebiten.KeyEnter, its.o())
+	e.RegisterButton(ebiten.GamepadButton0, its.menudown)
+	e.RegisterButton(ebiten.GamepadButton1, its.menuup)
+	e.RegisterButton(ebiten.GamepadButton2, its.o())
 
 	its.music.Play()
 }
@@ -75,10 +83,10 @@ func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
 		s.DrawImage(o.Image())
 	}
 	s.DrawImage(its.pointer.Image())
-	ebitenutil.DebugPrint(s, fmt.Sprintf("%d", its.index))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("%d, %s", its.index, ebiten.GamepadName(0)))
 }
 
-func (its *IntroTitleState) menudown() {
+func (its *IntroTitleState) menudown(e *engine.Engine) {
 	its.menu_move.Play()
 	if its.index+1 > len(its.menu)-1 {
 		its.index = 0
@@ -88,7 +96,7 @@ func (its *IntroTitleState) menudown() {
 	its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
 }
 
-func (its *IntroTitleState) menuup() {
+func (its *IntroTitleState) menuup(e *engine.Engine) {
 	its.menu_move.Play()
 	if its.index-1 < 0 {
 		its.index = len(its.menu) - 1
@@ -96,4 +104,20 @@ func (its *IntroTitleState) menuup() {
 		its.index -= 1
 	}
 	its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
+}
+
+func (its *IntroTitleState) o() func(e *engine.Engine) {
+	return func(e *engine.Engine) {
+		its.sel.Play()
+		var s engine.State
+		switch its.index {
+		case 0:
+			s = new(PlayState)
+		case 1:
+			s = new(OptionsState)
+		default:
+			return
+		}
+		e.PushState(s)
+	}
 }

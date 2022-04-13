@@ -17,11 +17,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-type Bytes struct {
+type bscloser struct {
 	*bytes.Reader
 }
 
-func (b *Bytes) Close() error {
+func (b *bscloser) Close() error {
 	return nil
 }
 
@@ -41,28 +41,46 @@ type Engine struct {
 	audioCtx                  *audio.Context
 	tf                        font.Face
 	width, height, samplerate int
-	ih                        *inputHandler
+	ikh                       *inputHandler[ebiten.Key]
+	igph                      *inputHandler[ebiten.GamepadButton]
 }
 
-type inputHandler struct {
-	keys map[ebiten.Key]func()
+type input interface {
+	ebiten.Key | ebiten.GamepadButton
 }
 
-func (ih *inputHandler) handle(k ebiten.Key, f func()) {
+type inputHandler[T input] struct {
+	keys map[T]func(e *Engine)
+}
+
+func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
 	ih.keys[k] = f
 }
 
-func (ih *inputHandler) run() {
+func (ih *inputHandler[T]) run(e *Engine) {
 	for k, v := range ih.keys {
-		if inpututil.IsKeyJustPressed(k) {
-			v()
+		// we know that T can only be a type in input
+		switch any(k).(type) {
+		case ebiten.Key:
+			if !inpututil.IsKeyJustPressed(ebiten.Key(k)) {
+				continue
+			}
+		case ebiten.GamepadButton:
+			if !inpututil.IsGamepadButtonJustPressed(0, ebiten.GamepadButton(k)) {
+				continue
+			}
+		// if it's not, idk how it got past the compiler.
+		// hopefully we can get compile-time guarantees on a type switch like this.
+		default:
+			panic("not a type in input constraint")
 		}
+		v(e)
 	}
 }
 
-func newInputHandler() *inputHandler {
-	ih := new(inputHandler)
-	ih.keys = make(map[ebiten.Key]func())
+func newInputHandler[T input]() *inputHandler[T] {
+	ih := new(inputHandler[T])
+	ih.keys = make(map[T]func(e *Engine))
 	return ih
 }
 
@@ -80,8 +98,12 @@ func (ap *AudioPlayer) Play() {
 	ap.mu.Unlock()
 }
 
-func (e *Engine) RegisterKey(k ebiten.Key, f func()) {
-	e.ih.handle(k, f)
+func (e *Engine) RegisterKey(k ebiten.Key, f func(e *Engine)) {
+	e.ikh.handle(k, f)
+}
+
+func (e *Engine) RegisterButton(b ebiten.GamepadButton, f func(e *Engine)) {
+	e.igph.handle(b, f)
 }
 
 func (e *Engine) Assets(fs fs.FS) {
@@ -93,7 +115,7 @@ func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Bytes{bytes.NewReader(bs)}, nil
+	return &bscloser{bytes.NewReader(bs)}, nil
 }
 
 // Player is a helper method to give an audio.Player from a wav asset.
@@ -140,7 +162,8 @@ func (e *Engine) Init(ctx context.Context, name string, w, h, sr int) error {
 	ebiten.SetWindowSize(w*2, h*2)
 	e.width, e.height, e.samplerate = w, h, sr
 
-	e.ih = newInputHandler()
+	e.ikh = newInputHandler[ebiten.Key]()
+	e.igph = newInputHandler[ebiten.GamepadButton]()
 
 	f, err := e.fs.Open("assets/fonts/font.ttf")
 	if err != nil {
@@ -185,8 +208,9 @@ func (e *Engine) PopState() {
 // Update implements ebiten.Game
 func (e *Engine) Update() error {
 	// run key handlers
-	e.ih.run()
-	// let the current state draw to the screen.
+	e.ikh.run(e)
+	e.igph.run(e)
+	// let the current state update the engine.
 	return e.states[len(e.states)-1].Update(e)
 }
 
