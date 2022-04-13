@@ -18,6 +18,9 @@ func (ops *OptionsState) Draw(e *engine.Engine, s *ebiten.Image) {
 }
 
 func (ops *OptionsState) Init(e *engine.Engine) {
+}
+
+func (ops *OptionsState) Register(e *engine.Engine) {
 	e.RegisterKey(ebiten.KeyBackspace, func(e *engine.Engine) {
 		e.PopState()
 	})

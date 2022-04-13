@@ -30,7 +30,11 @@ func (b *bscloser) Close() error {
 type State interface {
 	Update(e *Engine) error
 	Draw(e *Engine, s *ebiten.Image)
+	// Init is called when the State is first pushed onto the Engine stack.
 	Init(e *Engine)
+
+	// Register is called everytime State becomes the active state.
+	Register(e *Engine)
 }
 
 // Engine is the main game engine, which implements
@@ -43,6 +47,7 @@ type Engine struct {
 	width, height, samplerate int
 	ikh                       *inputHandler[ebiten.Key]
 	igph                      *inputHandler[ebiten.GamepadButton]
+	keepFlag                  bool
 }
 
 type input interface {
@@ -50,11 +55,32 @@ type input interface {
 }
 
 type inputHandler[T input] struct {
-	keys map[T]func(e *Engine)
+	keys             map[T][]func(e *Engine)
+	currentStateKeys []T
 }
 
 func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
-	ih.keys[k] = f
+	if ih.keys[k] == nil {
+		ih.keys[k] = make([]func(e *Engine), 0)
+	}
+	if ih.currentStateKeys == nil {
+		ih.currentStateKeys = make([]T, 0)
+	}
+	ih.currentStateKeys = append(ih.currentStateKeys, k)
+	ih.keys[k] = append(ih.keys[k], f)
+}
+
+func (ih *inputHandler[T]) deregister() {
+	if len(ih.currentStateKeys) < 1 {
+		return
+	}
+	for _, k := range ih.currentStateKeys {
+		if len(ih.keys[k]) < 1 {
+			return
+		}
+		ih.keys[k] = ih.keys[k][:len(ih.keys[k])-1]
+	}
+	ih.currentStateKeys = nil
 }
 
 func (ih *inputHandler[T]) run(e *Engine) {
@@ -74,13 +100,15 @@ func (ih *inputHandler[T]) run(e *Engine) {
 		default:
 			panic("not a type in input constraint")
 		}
-		v(e)
+		for _, f := range v {
+			f(e)
+		}
 	}
 }
 
 func newInputHandler[T input]() *inputHandler[T] {
 	ih := new(inputHandler[T])
-	ih.keys = make(map[T]func(e *Engine))
+	ih.keys = make(map[T][]func(e *Engine))
 	return ih
 }
 
@@ -104,6 +132,11 @@ func (e *Engine) RegisterKey(k ebiten.Key, f func(e *Engine)) {
 
 func (e *Engine) RegisterButton(b ebiten.GamepadButton, f func(e *Engine)) {
 	e.igph.handle(b, f)
+}
+
+// Deregister is called by a State when the engine should keep its Handlers even on change.
+func (e *Engine) KeepHandlers() {
+	e.keepFlag = true
 }
 
 func (e *Engine) Assets(fs fs.FS) {
@@ -187,22 +220,37 @@ func (e *Engine) Init(ctx context.Context, name string, w, h, sr int) error {
 	return nil
 }
 
+func (e *Engine) changed() {
+	if e.keepFlag {
+		return
+	}
+	e.ikh.deregister()
+	e.igph.deregister()
+	e.keepFlag = false
+}
+
 // ChangeState sets the currently running state to s.
 func (e *Engine) ChangeState(s State) {
+	e.changed()
 	s.Init(e)
+	s.Register(e)
 	e.states[len(e.states)-1] = s
 }
 
 // PushState appends s to the top of the stack.
 func (e *Engine) PushState(s State) {
+	e.changed()
 	s.Init(e)
+	s.Register(e)
 	e.states = append(e.states, s)
 }
 
 // PopState removes the state at the top of the stack.
 func (e *Engine) PopState() {
+	e.changed()
 	idx := len(e.states) - 1
 	e.states = e.states[:idx]
+	head(e.states).Register(e)
 }
 
 // Update implements ebiten.Game
