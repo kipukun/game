@@ -130,13 +130,13 @@ func (e *Engine) Init(ctx context.Context, c *Config) error {
 	var err error
 	e.conf = c
 	e.audioCtx = audio.NewContext(c.Samplerate)
-	ebiten.SetWindowTitle(name)
+	ebiten.SetWindowTitle(c.Name)
 	ebiten.SetWindowSize(c.Width*2, c.Height*2)
 
 	e.ikh = newInputHandler[ebiten.Key]()
 	e.igph = newInputHandler[ebiten.GamepadButton]()
 
-	e.Registry = newRegistry("file.save")
+	e.Registry = newRegistry(c.SaveFile)
 
 	f, err := e.fs.Open("assets/fonts/font.ttf")
 	if err != nil {

@@ -6,18 +6,20 @@ import (
 
 const (
 	name       = "jayarrpeegee"
+	savefile   = "file.save"
 	width      = 320
 	height     = 240
 	samplerate = 44100
 )
 
 type Config struct {
-	Name                      string
+	Name, SaveFile            string
 	Width, Height, Samplerate int
 }
 
 var defaultConfig = &Config{
 	Name:       name,
+	SaveFile:   savefile,
 	Width:      width,
 	Height:     height,
 	Samplerate: samplerate,
