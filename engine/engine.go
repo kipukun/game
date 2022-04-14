@@ -14,7 +14,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type bscloser struct {
@@ -40,77 +39,14 @@ type State interface {
 // Engine is the main game engine, which implements
 // the ebiten.Game interface and maintains a stack of states.
 type Engine struct {
-	fs                        fs.FS
-	states                    []State
-	audioCtx                  *audio.Context
-	tf                        font.Face
-	width, height, samplerate int
-	ikh                       *inputHandler[ebiten.Key]
-	igph                      *inputHandler[ebiten.GamepadButton]
-	keepFlag                  bool
+	conf     *Config
+	fs       fs.FS
+	states   []State
+	audioCtx *audio.Context
+	tf       font.Face
+	ikh      *inputHandler[ebiten.Key]
+	igph     *inputHandler[ebiten.GamepadButton]
 	*Registry
-}
-
-type input interface {
-	ebiten.Key | ebiten.GamepadButton
-}
-
-type inputHandler[T input] struct {
-	keys             map[T][]func(e *Engine)
-	currentStateKeys []T
-}
-
-func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
-	if ih.keys[k] == nil {
-		ih.keys[k] = make([]func(e *Engine), 0)
-	}
-	if ih.currentStateKeys == nil {
-		ih.currentStateKeys = make([]T, 0)
-	}
-	ih.currentStateKeys = append(ih.currentStateKeys, k)
-	ih.keys[k] = append(ih.keys[k], f)
-}
-
-func (ih *inputHandler[T]) deregister() {
-	if len(ih.currentStateKeys) < 1 {
-		return
-	}
-	for _, k := range ih.currentStateKeys {
-		if len(ih.keys[k]) < 1 {
-			return
-		}
-		ih.keys[k] = ih.keys[k][:len(ih.keys[k])-1]
-	}
-	ih.currentStateKeys = nil
-}
-
-func (ih *inputHandler[T]) run(e *Engine) {
-	for k, v := range ih.keys {
-		// we know that T can only be a type in input
-		switch any(k).(type) {
-		case ebiten.Key:
-			if !inpututil.IsKeyJustPressed(ebiten.Key(k)) {
-				continue
-			}
-		case ebiten.GamepadButton:
-			if !inpututil.IsGamepadButtonJustPressed(0, ebiten.GamepadButton(k)) {
-				continue
-			}
-		// if it's not, idk how it got past the compiler.
-		// hopefully we can get compile-time guarantees on a type switch like this.
-		default:
-			panic("not a type in input constraint")
-		}
-		for _, f := range v {
-			f(e)
-		}
-	}
-}
-
-func newInputHandler[T input]() *inputHandler[T] {
-	ih := new(inputHandler[T])
-	ih.keys = make(map[T][]func(e *Engine))
-	return ih
 }
 
 // AudioPlayer is a concurrent-safe wrapper around an audio.Player.
@@ -137,7 +73,8 @@ func (e *Engine) RegisterButton(b ebiten.GamepadButton, f func(e *Engine)) {
 
 // Deregister is called by a State when the engine should keep its Handlers even on change.
 func (e *Engine) KeepHandlers() {
-	e.keepFlag = true
+	e.ikh.keepFlag = true
+	e.igph.keepFlag = true
 }
 
 func (e *Engine) Assets(fs fs.FS) {
@@ -162,7 +99,7 @@ func (e *Engine) Player(path string) (*AudioPlayer, error) {
 	if err != nil {
 		return nil, err
 	}
-	mp3, err := mp3.DecodeWithSampleRate(e.samplerate, bytes.NewReader(bs))
+	mp3, err := mp3.DecodeWithSampleRate(e.conf.Samplerate, bytes.NewReader(bs))
 	if err != nil {
 		return nil, err
 	}
@@ -185,16 +122,16 @@ func (e *Engine) Font() font.Face {
 }
 
 func (e *Engine) Size() (float64, float64) {
-	return float64(e.width), float64(e.height)
+	return float64(e.conf.Width), float64(e.conf.Height)
 }
 
 // Init initializes the game window.
-func (e *Engine) Init(ctx context.Context, name string, w, h, sr int) error {
+func (e *Engine) Init(ctx context.Context, c *Config) error {
 	var err error
-	e.audioCtx = audio.NewContext(sr)
+	e.conf = c
+	e.audioCtx = audio.NewContext(c.Samplerate)
 	ebiten.SetWindowTitle(name)
-	ebiten.SetWindowSize(w*2, h*2)
-	e.width, e.height, e.samplerate = w, h, sr
+	ebiten.SetWindowSize(c.Width*2, c.Height*2)
 
 	e.ikh = newInputHandler[ebiten.Key]()
 	e.igph = newInputHandler[ebiten.GamepadButton]()
@@ -224,12 +161,8 @@ func (e *Engine) Init(ctx context.Context, name string, w, h, sr int) error {
 }
 
 func (e *Engine) changed() {
-	if e.keepFlag {
-		return
-	}
 	e.ikh.deregister()
 	e.igph.deregister()
-	e.keepFlag = false
 }
 
 // ChangeState sets the currently running state to s.
@@ -273,7 +206,7 @@ func (e *Engine) Draw(screen *ebiten.Image) {
 
 // Layout implements ebiten.Game
 func (e *Engine) Layout(ow, oh int) (int, int) {
-	return e.width, e.height
+	return e.conf.Width, e.conf.Height
 }
 
 // Run runs the Engine.

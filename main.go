@@ -14,12 +14,6 @@ import (
 //go:embed assets/*
 var assets embed.FS
 
-const (
-	WIDTH      = 320
-	HEIGHT     = 240
-	SAMPLERATE = 44100
-)
-
 func main() {
 	e := new(engine.Engine)
 	e.Assets(assets)
@@ -27,7 +21,12 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Kill)
 	defer cancel()
 
-	err := e.Init(ctx, "jayarrpeegee", WIDTH, HEIGHT, SAMPLERATE)
+	c, err := engine.NewConfigFromFile("config.toml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = e.Init(ctx, c)
 	if err != nil {
 		log.Fatal(err)
 	}
