@@ -21,6 +21,8 @@ type IntroTitleState struct {
 }
 
 func (its *IntroTitleState) Init(e *engine.Engine) {
+	e.Registry.Load()
+
 	var err error
 	its.music, err = e.Player("assets/audio/lebron_james.mp3")
 	if err != nil {

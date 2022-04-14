@@ -48,6 +48,7 @@ type Engine struct {
 	ikh                       *inputHandler[ebiten.Key]
 	igph                      *inputHandler[ebiten.GamepadButton]
 	keepFlag                  bool
+	*Registry
 }
 
 type input interface {
@@ -197,6 +198,8 @@ func (e *Engine) Init(ctx context.Context, name string, w, h, sr int) error {
 
 	e.ikh = newInputHandler[ebiten.Key]()
 	e.igph = newInputHandler[ebiten.GamepadButton]()
+
+	e.Registry = newRegistry("file.save")
 
 	f, err := e.fs.Open("assets/fonts/font.ttf")
 	if err != nil {
