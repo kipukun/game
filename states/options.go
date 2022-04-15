@@ -17,7 +17,7 @@ func (ops *OptionsState) Update(e *engine.Engine) error {
 }
 
 func (ops *OptionsState) Draw(e *engine.Engine, s *ebiten.Image) {
-	ebitenutil.DebugPrint(s, fmt.Sprintf("options, v: %d", ops.volume))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("options, v: %f", ops.volume))
 }
 
 func (ops *OptionsState) Init(e *engine.Engine) {

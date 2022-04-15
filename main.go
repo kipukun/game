@@ -16,8 +16,6 @@ var assets embed.FS
 
 func main() {
 	e := new(engine.Engine)
-	e.Assets(assets)
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Kill)
 	defer cancel()
 
@@ -26,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = e.Init(ctx, c)
+	err = e.Init(ctx, c, assets)
 	if err != nil {
 		log.Fatal(err)
 	}

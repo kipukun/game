@@ -3,13 +3,13 @@ module github.com/kipukun/game
 go 1.18
 
 require (
+	github.com/BurntSushi/toml v1.1.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/hajimehoshi/ebiten/v2 v2.2.6
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 )
 
 require (
-	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20210727001814-0db043d8d5be // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.2 // indirect
 	github.com/hajimehoshi/oto/v2 v2.1.0-alpha.2 // indirect

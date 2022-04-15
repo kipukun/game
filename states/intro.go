@@ -24,15 +24,15 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	e.Registry.Load()
 
 	var err error
-	its.music, err = e.Player("assets/audio/lebron_james.mp3")
+	its.music, err = e.Audio.Player("assets/audio/lebron_james.mp3")
 	if err != nil {
 		log.Fatal(err)
 	}
-	its.menu_move, err = e.Player("assets/audio/menu_move.mp3")
+	its.menu_move, err = e.Audio.Player("assets/audio/menu_move.mp3")
 	if err != nil {
 		log.Fatal(err)
 	}
-	its.sel, err = e.Player("assets/audio/select.mp3")
+	its.sel, err = e.Audio.Player("assets/audio/select.mp3")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -6,14 +6,12 @@ import (
 	"io"
 	"io/fs"
 	"log"
-	"sync"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
 type bscloser struct {
@@ -39,28 +37,14 @@ type State interface {
 // Engine is the main game engine, which implements
 // the ebiten.Game interface and maintains a stack of states.
 type Engine struct {
-	conf     *Config
-	fs       fs.FS
-	states   []State
-	audioCtx *audio.Context
-	tf       font.Face
-	ikh      *inputHandler[ebiten.Key]
-	igph     *inputHandler[ebiten.GamepadButton]
+	conf   *Config
+	fs     fs.FS
+	states []State
+	Audio  *audioHandler
+	tf     font.Face
+	ikh    *inputHandler[ebiten.Key]
+	igph   *inputHandler[ebiten.GamepadButton]
 	*Registry
-}
-
-// AudioPlayer is a concurrent-safe wrapper around an audio.Player.
-type AudioPlayer struct {
-	mu sync.Mutex
-	p  *audio.Player
-}
-
-func (ap *AudioPlayer) Play() {
-	ap.mu.Lock()
-	ap.p.Pause()
-	ap.p.Rewind()
-	ap.p.Play()
-	ap.mu.Unlock()
 }
 
 func (e *Engine) RegisterKey(k ebiten.Key, f func(e *Engine)) {
@@ -71,49 +55,14 @@ func (e *Engine) RegisterButton(b ebiten.GamepadButton, f func(e *Engine)) {
 	e.igph.handle(b, f)
 }
 
-// Deregister is called by a State when the engine should keep its Handlers even on change.
+// Deregister is called by a State when the engine should keep its handlers on state change.
 func (e *Engine) KeepHandlers() {
 	e.ikh.keepFlag = true
 	e.igph.keepFlag = true
 }
 
-func (e *Engine) Assets(fs fs.FS) {
-	e.fs = fs
-}
-
 func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
-	bs, err := fs.ReadFile(e.fs, path)
-	if err != nil {
-		return nil, err
-	}
-	return &bscloser{bytes.NewReader(bs)}, nil
-}
-
-// Player is a helper method to give an audio.Player from a wav asset.
-func (e *Engine) Player(path string) (*AudioPlayer, error) {
-	fd, err := e.Asset(path)
-	if err != nil {
-		return nil, err
-	}
-	bs, err := io.ReadAll(fd)
-	if err != nil {
-		return nil, err
-	}
-	mp3, err := mp3.DecodeWithSampleRate(e.conf.Samplerate, bytes.NewReader(bs))
-	if err != nil {
-		return nil, err
-	}
-
-	p, err := e.AudioCtx().NewPlayer(mp3)
-	if err != nil {
-		return nil, err
-	}
-	return &AudioPlayer{p: p}, nil
-}
-
-// AudioCtx returns the engine's audio context.
-func (e *Engine) AudioCtx() *audio.Context {
-	return e.audioCtx
+	return asset(e.fs, path)
 }
 
 // Font returns the configured font-face for the engine.
@@ -126,10 +75,16 @@ func (e *Engine) Size() (float64, float64) {
 }
 
 // Init initializes the game window.
-func (e *Engine) Init(ctx context.Context, c *Config) error {
+func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	var err error
+	e.fs = fsys
 	e.conf = c
-	e.audioCtx = audio.NewContext(c.Samplerate)
+	ah := &audioHandler{
+		actx:  audio.NewContext(c.Samplerate),
+		sr:    c.Samplerate,
+		files: e.fs,
+	}
+	e.Audio = ah
 	ebiten.SetWindowTitle(c.Name)
 	ebiten.SetWindowSize(c.Width*2, c.Height*2)
 
