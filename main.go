@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	i := new(states.IntroTitleState)
+	i := new(states.InitState)
 	e.PushState(i)
 
 	if err = e.Run(); err != nil {

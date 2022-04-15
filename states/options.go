@@ -21,12 +21,8 @@ func (ops *OptionsState) Draw(e *engine.Engine, s *ebiten.Image) {
 }
 
 func (ops *OptionsState) Init(e *engine.Engine) {
-	v := e.Registry.Get("volume")
-	if v == nil {
-		ops.volume = 10
-	} else {
-		ops.volume = v.(float64)
-	}
+	v := e.Registry.Get("volume", 10.0)
+	ops.volume = v.(float64)
 }
 
 func (ops *OptionsState) Register(e *engine.Engine) {
@@ -47,6 +43,7 @@ func (ops *OptionsState) volumedown(e *engine.Engine) {
 		return
 	}
 	ops.volume -= 1
+	e.Audio.SetVolume(ops.volume * 0.1)
 }
 
 func (ops *OptionsState) volumeup(e *engine.Engine) {
@@ -54,4 +51,5 @@ func (ops *OptionsState) volumeup(e *engine.Engine) {
 		return
 	}
 	ops.volume += 1
+	e.Audio.SetVolume(ops.volume * 0.1)
 }

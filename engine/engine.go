@@ -91,7 +91,7 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	e.ikh = newInputHandler[ebiten.Key]()
 	e.igph = newInputHandler[ebiten.GamepadButton]()
 
-	e.Registry = newRegistry(c.SaveFile)
+	e.Registry = newRegistry(e.conf.SaveFile)
 
 	f, err := e.fs.Open("assets/fonts/font.ttf")
 	if err != nil {
@@ -125,6 +125,9 @@ func (e *Engine) ChangeState(s State) {
 	e.changed()
 	s.Init(e)
 	s.Register(e)
+	if len(e.states) == 0 {
+		e.states = make([]State, 1)
+	}
 	e.states[len(e.states)-1] = s
 }
 
@@ -139,8 +142,7 @@ func (e *Engine) PushState(s State) {
 // PopState removes the state at the top of the stack.
 func (e *Engine) PopState() {
 	e.changed()
-	idx := len(e.states) - 1
-	e.states = e.states[:idx]
+	e.states = e.states[:len(e.states)-1]
 	head(e.states).Register(e)
 }
 
@@ -150,13 +152,13 @@ func (e *Engine) Update() error {
 	e.ikh.run(e)
 	e.igph.run(e)
 	// let the current state update the engine.
-	return e.states[len(e.states)-1].Update(e)
+	return head(e.states).Update(e)
 }
 
 // Draw implements ebiten.Game (kind of)
 func (e *Engine) Draw(screen *ebiten.Image) {
 	// let the current state draw to the screen.
-	e.states[len(e.states)-1].Draw(e, screen)
+	head(e.states).Draw(e, screen)
 }
 
 // Layout implements ebiten.Game

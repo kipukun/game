@@ -12,8 +12,10 @@ import (
 
 type audioHandler struct {
 	actx  *audio.Context
+	ps    []*AudioPlayer
 	files fs.FS
 	sr    int
+	v     float64
 }
 
 // AudioPlayer is a concurrent-safe wrapper around an audio.Player.
@@ -28,6 +30,18 @@ func (ap *AudioPlayer) Play() {
 	ap.p.Rewind()
 	ap.p.Play()
 	ap.mu.Unlock()
+}
+
+func (ap *audioHandler) SetVolume(v float64) {
+	if v > 1.0 || v < 0.0 {
+		return
+	}
+	ap.v = v
+	for _, p := range ap.ps {
+		p.mu.Lock()
+		p.p.SetVolume(v)
+		p.mu.Unlock()
+	}
 }
 
 // Player is a helper method to give an audio.Player from a wav asset.
@@ -49,5 +63,9 @@ func (ah *audioHandler) Player(path string) (*AudioPlayer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &AudioPlayer{p: p}, nil
+
+	ap := &AudioPlayer{p: p}
+	ap.p.SetVolume(ah.v)
+	ah.ps = append(ah.ps, ap)
+	return ap, nil
 }

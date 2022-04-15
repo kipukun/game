@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"sync"
 )
@@ -37,10 +38,13 @@ func (r *Registry) Save(s string, v any) {
 	}
 }
 
-func (r *Registry) Get(s string) any {
+func (r *Registry) Get(s string, dv any) any {
 	r.mu.RLock()
 	v := r.m[s]
 	r.mu.RUnlock()
+	if v == nil {
+		return dv
+	}
 	return v
 }
 
@@ -49,6 +53,7 @@ func (r *Registry) Load() {
 	bs, err := os.ReadFile(r.path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("doesnt exist!")
 			bs = []byte("{}")
 		} else {
 			panic(err)
