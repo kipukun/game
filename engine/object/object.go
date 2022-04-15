@@ -21,7 +21,6 @@ type ImageObject interface {
 type Object interface {
 	Update()
 	Size() (width, height int)
-	Pos() (x, y float64)
 
 	GetPosition() (x, y float64)
 	GetVelocity() (dx, dy float64)
@@ -54,6 +53,12 @@ func FromAsset(e *engine.Engine, p string) (ImageObject, error) {
 	i.img = ebiten.NewImageFromImage(img)
 	return i, nil
 
+}
+
+func FromImage(img image.Image) ImageObject {
+	io := new(imgobj)
+	io.img = ebiten.NewImageFromImage(img)
+	return io
 }
 
 type imgobj struct {
