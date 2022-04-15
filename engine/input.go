@@ -13,6 +13,7 @@ type inputHandler[T input] struct {
 	keys             map[T][]func(e *Engine)
 	currentStateKeys []T
 	keepFlag         bool
+	held             bool
 }
 
 func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
@@ -44,6 +45,22 @@ func (ih *inputHandler[T]) deregister() {
 }
 
 func (ih *inputHandler[T]) run(e *Engine) {
+	if ih.held {
+		keys := inpututil.AppendPressedKeys(make([]ebiten.Key, 0))
+		if len(keys) < 1 {
+			return
+		}
+		for k, v := range ih.keys {
+			for _, key := range keys {
+				if key == any(k).(ebiten.Key) {
+					for _, f := range v {
+						f(e)
+					}
+				}
+			}
+		}
+		return
+	}
 	for k, v := range ih.keys {
 		// we know that T can only be a type in input
 		switch any(k).(type) {
@@ -66,8 +83,9 @@ func (ih *inputHandler[T]) run(e *Engine) {
 	}
 }
 
-func newInputHandler[T input]() *inputHandler[T] {
+func newInputHandler[T input](held bool) *inputHandler[T] {
 	ih := new(inputHandler[T])
 	ih.keys = make(map[T][]func(e *Engine))
+	ih.held = held
 	return ih
 }

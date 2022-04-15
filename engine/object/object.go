@@ -61,6 +61,12 @@ func FromImage(img image.Image) ImageObject {
 	return io
 }
 
+func FromEbitenImage(eimg *ebiten.Image) ImageObject {
+	io := new(imgobj)
+	io.img = eimg
+	return io
+}
+
 type imgobj struct {
 	img      *ebiten.Image // underlying image
 	x, y     float64

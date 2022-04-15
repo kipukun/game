@@ -1,12 +1,10 @@
 package states
 
 import (
-	"fmt"
 	"image/color"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 )
@@ -34,7 +32,6 @@ func (ops *OptionsState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ops.instructions.Image())
 	s.DrawImage(ops.vlabel.Image())
 	s.DrawImage(ops.vbar.Image())
-	ebitenutil.DebugPrint(s, fmt.Sprintf("options, v: %f", ops.volume))
 }
 
 func (ops *OptionsState) Init(e *engine.Engine) {

@@ -37,28 +37,38 @@ type State interface {
 // Engine is the main game engine, which implements
 // the ebiten.Game interface and maintains a stack of states.
 type Engine struct {
-	conf   *Config
-	fs     fs.FS
-	states []State
-	Audio  *audioHandler
-	tf     font.Face
-	ikh    *inputHandler[ebiten.Key]
-	igph   *inputHandler[ebiten.GamepadButton]
+	conf        *Config
+	fs          fs.FS
+	states      []State
+	Audio       *audioHandler
+	tf          font.Face
+	keyh, hkeyh *inputHandler[ebiten.Key]
+	gph, hgph   *inputHandler[ebiten.GamepadButton]
 	*Registry
 }
 
 func (e *Engine) RegisterKey(k ebiten.Key, f func(e *Engine)) {
-	e.ikh.handle(k, f)
+	e.keyh.handle(k, f)
 }
 
 func (e *Engine) RegisterButton(b ebiten.GamepadButton, f func(e *Engine)) {
-	e.igph.handle(b, f)
+	e.gph.handle(b, f)
+}
+
+func (e *Engine) RegisterHeldKey(k ebiten.Key, f func(e *Engine)) {
+	e.hkeyh.handle(k, f)
+}
+
+func (e *Engine) RegisterHeldButton(b ebiten.GamepadButton, f func(e *Engine)) {
+	e.hgph.handle(b, f)
 }
 
 // Deregister is called by a State when the engine should keep its handlers on state change.
 func (e *Engine) KeepHandlers() {
-	e.ikh.keepFlag = true
-	e.igph.keepFlag = true
+	e.keyh.keepFlag = true
+	e.gph.keepFlag = true
+	e.hkeyh.keepFlag = true
+	e.hgph.keepFlag = true
 }
 
 func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
@@ -88,8 +98,10 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	ebiten.SetWindowTitle(c.Name)
 	ebiten.SetWindowSize(c.Width*2, c.Height*2)
 
-	e.ikh = newInputHandler[ebiten.Key]()
-	e.igph = newInputHandler[ebiten.GamepadButton]()
+	e.keyh = newInputHandler[ebiten.Key](false)
+	e.gph = newInputHandler[ebiten.GamepadButton](false)
+	e.hkeyh = newInputHandler[ebiten.Key](true)
+	e.hgph = newInputHandler[ebiten.GamepadButton](true)
 
 	e.Registry = newRegistry(e.conf.SaveFile)
 
@@ -116,8 +128,10 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 }
 
 func (e *Engine) changed() {
-	e.ikh.deregister()
-	e.igph.deregister()
+	e.keyh.deregister()
+	e.gph.deregister()
+	e.hkeyh.deregister()
+	e.hgph.deregister()
 }
 
 // ChangeState sets the currently running state to s.
@@ -149,8 +163,10 @@ func (e *Engine) PopState() {
 // Update implements ebiten.Game
 func (e *Engine) Update() error {
 	// run key handlers
-	e.ikh.run(e)
-	e.igph.run(e)
+	e.keyh.run(e)
+	e.gph.run(e)
+	e.hkeyh.run(e)
+	e.hgph.run(e)
 	// let the current state update the engine.
 	return head(e.states).Update(e)
 }
