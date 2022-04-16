@@ -44,6 +44,8 @@ type Engine struct {
 	tf          font.Face
 	keyh, hkeyh *inputHandler[ebiten.Key]
 	gph, hgph   *inputHandler[ebiten.GamepadButton]
+	Camera      *Camera
+	vscreen     *ebiten.Image
 	*Registry
 }
 
@@ -102,6 +104,9 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	e.gph = newInputHandler[ebiten.GamepadButton](false)
 	e.hkeyh = newInputHandler[ebiten.Key](true)
 	e.hgph = newInputHandler[ebiten.GamepadButton](true)
+
+	e.Camera = NewCamera()
+	e.vscreen = ebiten.NewImage(c.Width*2, c.Height*2)
 
 	e.Registry = newRegistry(e.conf.SaveFile)
 
@@ -174,7 +179,9 @@ func (e *Engine) Update() error {
 // Draw implements ebiten.Game (kind of)
 func (e *Engine) Draw(screen *ebiten.Image) {
 	// let the current state draw to the screen.
-	head(e.states).Draw(e, screen)
+	e.vscreen.Clear()
+	head(e.states).Draw(e, e.vscreen)
+	screen.DrawImage(e.vscreen, e.Camera.View())
 }
 
 // Layout implements ebiten.Game

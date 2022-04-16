@@ -1,12 +1,7 @@
 package object
 
 import (
-	"image"
-	"image/color"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/kipukun/game/engine"
 )
 
 // An ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
@@ -31,92 +26,57 @@ type Object interface {
 	SetAcceleration(ddx, ddy float64)
 }
 
-// FromText returns an ImageObject that is rendered using the engine's font and the supplied text.
-func FromText(e *engine.Engine, t string, c color.Color) ImageObject {
-	i := new(imgobj)
-	r := text.BoundString(e.Font(), t)
-	i.img = ebiten.NewImage(r.Dx(), r.Dy())
-	text.Draw(i.img, t, e.Font(), 0, r.Dy(), c)
-	return i
-}
-
-func FromAsset(e *engine.Engine, p string) (ImageObject, error) {
-	i := new(imgobj)
-	f, err := e.Asset(p)
-	if err != nil {
-		return nil, err
-	}
-	img, _, err := image.Decode(f)
-	if err != nil {
-		return nil, err
-	}
-	i.img = ebiten.NewImageFromImage(img)
-	return i, nil
-
-}
-
-func FromImage(img image.Image) ImageObject {
-	io := new(imgobj)
-	io.img = ebiten.NewImageFromImage(img)
-	return io
-}
-
-func FromEbitenImage(eimg *ebiten.Image) ImageObject {
-	io := new(imgobj)
-	io.img = eimg
-	return io
-}
-
-type imgobj struct {
-	img      *ebiten.Image // underlying image
+type obj struct {
+	w, h     int
 	x, y     float64
 	dx, dy   float64
 	ddx, ddy float64
 }
 
-func (i *imgobj) Update() {
-	i.dx += i.ddx
-	i.dy += i.ddy
-	i.x += i.dx
-	i.y += i.dy
+func NewEmpty(w, h int) Object {
+	o := new(obj)
+	o.w = w
+	o.h = h
+	return o
 }
 
-func (i *imgobj) Size() (int, int) {
-	return i.img.Bounds().Max.X, i.img.Bounds().Max.Y
+func (o *obj) Update() {
+	o.dx += o.ddx
+	o.dy += o.ddy
+	o.x += o.dx
+	o.y += o.dy
 }
 
-func (i *imgobj) Pos() (float64, float64) {
-	return i.x, i.y
+func (o *obj) Size() (int, int) {
+	return o.w, o.h
 }
 
-func (i *imgobj) GetPosition() (x, y float64) {
-	return i.x, i.y
+func (o *obj) Pos() (float64, float64) {
+	return o.x, o.y
 }
 
-func (i *imgobj) GetVelocity() (dx, dy float64) {
-	return i.dx, i.dy
-}
-func (i *imgobj) GetAcceleration() (ddx, ddy float64) {
-	return i.dx, i.dy
+func (o *obj) GetPosition() (x, y float64) {
+	return o.x, o.y
 }
 
-func (i *imgobj) SetPosition(x, y float64) {
-	i.x = x
-	i.y = y
+func (o *obj) GetVelocity() (dx, dy float64) {
+	return o.dx, o.dy
+}
+func (o *obj) GetAcceleration() (ddx, ddy float64) {
+	return o.dx, o.dy
 }
 
-func (i *imgobj) SetVelocity(dx, dy float64) {
-	i.dx = dx
-	i.dy = dy
+func (o *obj) SetPosition(x, y float64) {
+	o.x = x
+	o.y = y
 }
 
-func (i *imgobj) SetAcceleration(ddx, ddy float64) {
-	i.ddx = ddx
-	i.ddy = ddy
+func (o *obj) SetVelocity(dx, dy float64) {
+	o.dx = dx
+	o.dy = dy
 }
 
-func (i *imgobj) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
-	o := new(ebiten.DrawImageOptions)
-	o.GeoM.Translate(i.x, i.y)
-	return i.img, o
+func (o *obj) SetAcceleration(ddx, ddy float64) {
+	o.ddx = ddx
+	o.ddy = ddy
 }

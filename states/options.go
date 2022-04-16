@@ -12,16 +12,16 @@ import (
 type OptionsState struct {
 	volume               float64
 	vlabel, instructions object.ImageObject
-	vbar                 object.Animation
+	vbar                 engine.Animation
 }
 
-func progressBar(e *engine.Engine, len int) object.Animation {
+func progressBar(e *engine.Engine, len int) engine.Animation {
 	fs := make([]object.ImageObject, 0)
 	for i := 0; i <= len; i++ {
-		f := object.FromText(e, "["+strings.Repeat("|", i), color.White)
+		f := engine.FromText(e, "["+strings.Repeat("|", i), color.White)
 		fs = append(fs, f)
 	}
-	return object.NewAnimationFromImages(fs)
+	return engine.NewAnimationFromImages(fs)
 }
 
 func (ops *OptionsState) Update(e *engine.Engine) error {
@@ -43,11 +43,11 @@ func (ops *OptionsState) Init(e *engine.Engine) {
 	for i := 0; i < int(ops.volume); i++ {
 		ops.vbar.Progress()
 	}
-	ops.instructions = object.FromText(e, "ENTER TO CONFIRM, BACKSPACE TO EXIT", color.White)
+	ops.instructions = engine.FromText(e, "ENTER TO CONFIRM, BACKSPACE TO EXIT", color.White)
 	_, sy := ops.instructions.Size()
 	ops.instructions.SetPosition(0, h-float64(sy)-10)
 	object.CenterH(w, ops.instructions)
-	ops.vlabel = object.FromText(e, "VOLUME", color.White)
+	ops.vlabel = engine.FromText(e, "VOLUME", color.White)
 	object.Middle(w, h, ops.vlabel)
 	object.Offset(ops.vlabel, ops.vbar, 50, object.Left)
 }

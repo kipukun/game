@@ -1,26 +1,27 @@
-package object
+package engine
 
 import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kipukun/game/engine/object"
 )
 
 type Animation interface {
 	Progress()
 	Rewind()
-	ImageObject
+	object.ImageObject
 }
 
 type animatedObject struct {
 	i      int
-	frames []ImageObject
+	frames []object.ImageObject
 }
 
-func NewAnimationFromImage(sheet ImageObject, size image.Rectangle, nframes int) Animation {
+func NewAnimationFromImage(sheet object.ImageObject, size image.Rectangle, nframes int) Animation {
 	ao := new(animatedObject)
 	img, _ := sheet.Image()
-	frames := make([]ImageObject, 0)
+	frames := make([]object.ImageObject, 0)
 	for i := 0; i < nframes; i++ {
 		simg := img.SubImage(size.Add(image.Pt(size.Dx()*i, 0)))
 		frames = append(frames, FromImage(simg))
@@ -29,7 +30,7 @@ func NewAnimationFromImage(sheet ImageObject, size image.Rectangle, nframes int)
 	return ao
 }
 
-func NewAnimationFromImages(frames []ImageObject) Animation {
+func NewAnimationFromImages(frames []object.ImageObject) Animation {
 	ao := new(animatedObject)
 	ao.frames = frames
 	return ao
