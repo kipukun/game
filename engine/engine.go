@@ -27,10 +27,11 @@ func (b *bscloser) Close() error {
 type State interface {
 	Update(e *Engine) error
 	Draw(e *Engine, s *ebiten.Image)
-	// Init is called when the State is first pushed onto the Engine stack.
+
+	// Init is called when the State is first pushed onto the engine stack.
 	Init(e *Engine)
 
-	// Register is called everytime State becomes the active state.
+	// Register is called everytime this state becomes the active state.
 	Register(e *Engine)
 }
 
@@ -49,18 +50,22 @@ type Engine struct {
 	*Registry
 }
 
+// RegisterKey registers f to be called when k is pressed during the current frame.
 func (e *Engine) RegisterKey(k ebiten.Key, f func(e *Engine)) {
 	e.keyh.handle(k, f)
 }
 
+// RegisterKey registers f to be called when b is pressed during the current frame.
 func (e *Engine) RegisterButton(b ebiten.GamepadButton, f func(e *Engine)) {
 	e.gph.handle(b, f)
 }
 
+// RegisterHeldKey registers f to be called when k is held down.
 func (e *Engine) RegisterHeldKey(k ebiten.Key, f func(e *Engine)) {
 	e.hkeyh.handle(k, f)
 }
 
+// RegisterHeldKey registers f to be called when b is held down.
 func (e *Engine) RegisterHeldButton(b ebiten.GamepadButton, f func(e *Engine)) {
 	e.hgph.handle(b, f)
 }
@@ -86,7 +91,7 @@ func (e *Engine) Size() (float64, float64) {
 	return float64(e.conf.Width), float64(e.conf.Height)
 }
 
-// Init initializes the game window.
+// Init initializes the entire Engine.
 func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	var err error
 	e.fs = fsys

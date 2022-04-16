@@ -12,6 +12,7 @@ const (
 	samplerate = 44100
 )
 
+// Config configures the engine.
 type Config struct {
 	Name, SaveFile            string
 	Width, Height, Samplerate int

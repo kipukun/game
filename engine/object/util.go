@@ -8,7 +8,7 @@ func CenterV(h float64, o Object) (float64, float64) {
 	return o.GetPosition()
 }
 
-// CenterH centers o on s horizontally.
+// CenterH centers o on s horizontally and returns its new position.
 func CenterH(w float64, o Object) (float64, float64) {
 	Dx, _ := o.Size()
 	_, y := o.GetPosition()

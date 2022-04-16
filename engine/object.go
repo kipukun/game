@@ -35,6 +35,7 @@ func FromText(e *Engine, t string, c color.Color) object.ImageObject {
 	return io
 }
 
+// FromAsset returns an object.ImageObject with the supplied asset, or nil and an error.
 func FromAsset(e *Engine, p string) (object.ImageObject, error) {
 	io := new(imgobj)
 	f, err := e.Asset(p)
@@ -51,6 +52,7 @@ func FromAsset(e *Engine, p string) (object.ImageObject, error) {
 
 }
 
+// FromImage returns an object.ImageObject from an image.Image.
 func FromImage(img image.Image) object.ImageObject {
 	io := new(imgobj)
 	io.Object = object.NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
@@ -65,6 +67,7 @@ func FromEbitenImage(eimg *ebiten.Image) object.ImageObject {
 	return io
 }
 
+// Pinner pins an image to the screen.
 type Pinner struct {
 	io object.ImageObject
 	c  *Camera
@@ -77,6 +80,7 @@ func (p *Pinner) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return img, o
 }
 
+// NewPinner returns a Pinner which pins io to the perspective of c.
 func NewPinner(c *Camera, io object.ImageObject) *Pinner {
 	p := new(Pinner)
 	p.io = io

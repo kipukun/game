@@ -24,6 +24,7 @@ type AudioPlayer struct {
 	p  *audio.Player
 }
 
+// Play plays the AudioPlayer from the beginning.
 func (ap *AudioPlayer) Play() {
 	ap.mu.Lock()
 	ap.p.Pause()
@@ -32,6 +33,7 @@ func (ap *AudioPlayer) Play() {
 	ap.mu.Unlock()
 }
 
+// SetVolume sets the volume for all players registered in the handler.
 func (ap *audioHandler) SetVolume(v float64) {
 	if v > 1.0 || v < 0.0 {
 		return
@@ -44,7 +46,7 @@ func (ap *audioHandler) SetVolume(v float64) {
 	}
 }
 
-// Player is a helper method to give an audio.Player from a wav asset.
+// Player is a helper method to give an audio.Player from an MP3 asset.
 func (ah *audioHandler) Player(path string) (*AudioPlayer, error) {
 	fd, err := asset(ah.files, path)
 	if err != nil {

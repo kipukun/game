@@ -7,6 +7,7 @@ import (
 	"github.com/kipukun/game/engine/object"
 )
 
+// Animation describes objects that can animate themselves.
 type Animation interface {
 	Progress()
 	Rewind()
@@ -18,6 +19,7 @@ type animatedObject struct {
 	frames []object.ImageObject
 }
 
+// NewAnimationFromImage returns a new Animation that creates frames from sheet of size size.
 func NewAnimationFromImage(sheet object.ImageObject, size image.Rectangle, nframes int) Animation {
 	ao := new(animatedObject)
 	img, _ := sheet.Image()
@@ -30,6 +32,7 @@ func NewAnimationFromImage(sheet object.ImageObject, size image.Rectangle, nfram
 	return ao
 }
 
+// NewAnimationFromImages returns an Animation that can animate the frames in frames.
 func NewAnimationFromImages(frames []object.ImageObject) Animation {
 	ao := new(animatedObject)
 	ao.frames = frames

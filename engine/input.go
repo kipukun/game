@@ -5,10 +5,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// input describes the different types of inputs.
 type input interface {
 	ebiten.Key | ebiten.GamepadButton
 }
 
+// inputHandler is able to keep track of currently registered keys.
 type inputHandler[T input] struct {
 	keys             map[T][]func(e *Engine)
 	currentStateKeys []T
@@ -16,6 +18,7 @@ type inputHandler[T input] struct {
 	held             bool
 }
 
+// handle registers f to be called when k is either pressed once or held down.
 func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
 	if ih.keys[k] == nil {
 		ih.keys[k] = make([]func(e *Engine), 0)
@@ -27,6 +30,7 @@ func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
 	ih.keys[k] = append(ih.keys[k], f)
 }
 
+// deregister removes the current State's keys, unless KeepHandlers was called.
 func (ih *inputHandler[T]) deregister() {
 	if ih.keepFlag {
 		ih.keepFlag = false
@@ -44,6 +48,7 @@ func (ih *inputHandler[T]) deregister() {
 	ih.currentStateKeys = nil
 }
 
+// run runs all registered handlers depending on current input.
 func (ih *inputHandler[T]) run(e *Engine) {
 	if ih.held {
 		keys := inpututil.AppendPressedKeys(make([]ebiten.Key, 0))

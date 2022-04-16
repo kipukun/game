@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// An ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
+// ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
 type ImageObject interface {
 	Object
 
@@ -33,6 +33,7 @@ type obj struct {
 	ddx, ddy float64
 }
 
+// NewEmpty returns an empty Object with its width and height set to w and h, respectively.
 func NewEmpty(w, h int) Object {
 	o := new(obj)
 	o.w = w

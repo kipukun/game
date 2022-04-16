@@ -5,6 +5,7 @@ import (
 	"github.com/kipukun/game/engine/object"
 )
 
+// Camera is a special Object that determines what is shown on screen.
 type Camera struct {
 	object.Object
 }
@@ -15,6 +16,7 @@ func NewCamera() *Camera {
 	return c
 }
 
+// View returns what the Camera can currently see.
 func (c *Camera) View() *ebiten.DrawImageOptions {
 	o := &ebiten.DrawImageOptions{}
 	x, y := c.GetPosition()

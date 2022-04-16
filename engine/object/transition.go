@@ -15,6 +15,7 @@ const (
 	Down
 )
 
+// Fader is able to fade an ImageObject from transparent to opaque.
 type Fader struct {
 	ImageObject
 	t float64
@@ -26,11 +27,13 @@ func NewFader(img ImageObject) *Fader {
 	return f
 }
 
+// Calculate progresses the animation, and calls callback when the animation is finished.
 func (f *Fader) Calculate(callback func()) {
-	f.t += 0.008
 	if f.t >= 1.0 {
+		callback()
 		return
 	}
+	f.t += 0.008
 }
 
 func (f *Fader) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
@@ -39,6 +42,7 @@ func (f *Fader) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return img, o
 }
 
+// Easer implements an ease transition, moving an Object to a position using a parametric Bezier curve.
 type Easer[O Object] struct {
 	O     O
 	t     float64

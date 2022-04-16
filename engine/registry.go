@@ -8,6 +8,7 @@ import (
 	"sync"
 )
 
+// Registry is a global key/value store that states can use to save values.
 type Registry struct {
 	mu   sync.RWMutex
 	m    map[string]any
@@ -21,6 +22,7 @@ func newRegistry(path string) *Registry {
 	return r
 }
 
+// Save registers and saves v associated to s.
 func (r *Registry) Save(s string, v any) {
 	r.mu.Lock()
 	r.m[s] = v
@@ -38,6 +40,7 @@ func (r *Registry) Save(s string, v any) {
 	}
 }
 
+// Get returns the value associated with s, or dv if there was no value found.
 func (r *Registry) Get(s string, dv any) any {
 	r.mu.RLock()
 	v := r.m[s]
@@ -48,6 +51,7 @@ func (r *Registry) Get(s string, dv any) any {
 	return v
 }
 
+// Load reads the Registry from disk.
 func (r *Registry) Load() {
 	r.mu.RLock()
 	bs, err := os.ReadFile(r.path)
