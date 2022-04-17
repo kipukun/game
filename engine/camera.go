@@ -23,3 +23,7 @@ func (c *Camera) View() *ebiten.DrawImageOptions {
 	o.GeoM.Translate(-x, -y)
 	return o
 }
+
+func (c *Camera) Reset() {
+	c.SetPosition(0, 0)
+}

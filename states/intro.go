@@ -80,6 +80,8 @@ func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
 }
 
 func (its *IntroTitleState) Register(e *engine.Engine) {
+	e.Camera.Reset()
+
 	e.RegisterKey(ebiten.KeyArrowDown, its.menudown)
 	e.RegisterKey(ebiten.KeyArrowUp, its.menuup)
 	e.RegisterKey(ebiten.KeyEnter, its.o)
