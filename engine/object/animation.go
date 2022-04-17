@@ -1,39 +1,23 @@
-package engine
+package object
 
 import (
-	"image"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/kipukun/game/engine/object"
 )
 
 // Animation describes objects that can animate themselves.
 type Animation interface {
 	Progress()
 	Rewind()
-	object.ImageObject
+	ImageObject
 }
 
 type animatedObject struct {
 	i      int
-	frames []object.ImageObject
-}
-
-// NewAnimationFromImage returns a new Animation that creates frames from sheet of size size.
-func NewAnimationFromImage(sheet object.ImageObject, size image.Rectangle, nframes int) Animation {
-	ao := new(animatedObject)
-	img, _ := sheet.Image()
-	frames := make([]object.ImageObject, 0)
-	for i := 0; i < nframes; i++ {
-		simg := img.SubImage(size.Add(image.Pt(size.Dx()*i, 0)))
-		frames = append(frames, FromImage(simg))
-	}
-	ao.frames = frames
-	return ao
+	frames []ImageObject
 }
 
 // NewAnimationFromImages returns an Animation that can animate the frames in frames.
-func NewAnimationFromImages(frames []object.ImageObject) Animation {
+func NewAnimationFromImages(frames []ImageObject) Animation {
 	ao := new(animatedObject)
 	ao.frames = frames
 	return ao

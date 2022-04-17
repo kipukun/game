@@ -1,17 +1,20 @@
 package states
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
+	"github.com/kipukun/game/engine/tile"
 )
 
 type PlayState struct {
 	player object.ImageObject
-	title  *engine.Pinner
+	title  *object.Pinner
+	sheet  *tile.TileSheet
+	world  object.ImageObject
 }
 
 func (ps *PlayState) Update(e *engine.Engine) error {
@@ -19,23 +22,37 @@ func (ps *PlayState) Update(e *engine.Engine) error {
 }
 
 func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
-	s.DrawImage(ps.title.Image())
+	s.DrawImage(ps.world.Image())
 	s.DrawImage(ps.player.Image())
-	ebitenutil.DebugPrint(s, "play")
+	s.DrawImage(ps.title.Image(e.Camera.Pos()))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) {
 	w, h := e.Size()
+
+	layer1 := make([]image.Point, 0)
+	for i := 0; i <= 32*2*24+1; i++ {
+		layer1 = append(layer1, image.Pt(5, 0))
+	}
+
+	layers := [][]image.Point{
+		layer1,
+	}
+
+	ps.sheet = tile.NewTileSheet(e.NewEbitenFromAsset("assets/tiles/tile_sheet.png"), 10, 10)
+	tm := tile.NewTileMap(ps.sheet, layers, 64)
+	ps.world = object.FromEbitenImage(tm)
+
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
-	ps.player = engine.FromEbitenImage(player)
-	title := engine.FromText(e, "HEALTH: <3 <3 <3", color.White)
+	ps.player = object.FromEbitenImage(player)
+	object.Middle(w, h, ps.player)
+
+	title := object.FromText(e.Font(), "HEALTH: <3 <3 <3", color.White)
 	object.CenterH(w, title)
 	tx, ty := title.GetPosition()
 	title.SetPosition(tx, ty+40)
-	ps.title = engine.NewPinner(e.Camera, title)
-
-	object.Middle(w, h, ps.player)
+	ps.title = object.NewPinner(title)
 }
 
 func (ps *PlayState) Register(e *engine.Engine) {

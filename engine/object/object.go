@@ -1,16 +1,5 @@
 package object
 
-import (
-	"github.com/hajimehoshi/ebiten/v2"
-)
-
-// ImageObject is an Object that also has an associated ebiten.Image (i.e., can be drawn to the screen).
-type ImageObject interface {
-	Object
-
-	Image() (*ebiten.Image, *ebiten.DrawImageOptions)
-}
-
 // Object represents some in-game object, with some
 // bounding box and an ability to update its position.
 type Object interface {

@@ -27,3 +27,8 @@ func (c *Camera) View() *ebiten.DrawImageOptions {
 func (c *Camera) Reset() {
 	c.SetPosition(0, 0)
 }
+
+func (c *Camera) Pos() (float64, float64) {
+	x, y := c.GetPosition()
+	return float64(x), float64(y)
+}

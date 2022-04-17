@@ -40,20 +40,20 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	w, h := e.Size()
 
 	for i, item := range menu {
-		o := engine.FromText(e, item, color.White)
+		o := object.FromText(e.Font(), item, color.White)
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
 		its.menu = append(its.menu, object.NewFader(o))
 	}
 
-	pointer := engine.FromText(e, ">", color.White)
+	pointer := object.FromText(e.Font(), ">", color.White)
 	fromx, fromy := its.menu[0].GetPosition()
 	pointer.SetPosition(fromx-30, fromy)
 
 	its.px, its.py = pointer.GetPosition()
 	its.pointer = object.NewFader(pointer)
 
-	its.title = object.NewEaser(engine.FromText(e, "JRPG", color.White), -h+40)
+	its.title = object.NewEaser(object.FromText(e.Font(), "JRPG", color.White), -h+40)
 	nx, _ := object.CenterH(w, its.title.O)
 	its.title.O.SetPosition(nx, h)
 
