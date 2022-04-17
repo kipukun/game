@@ -30,7 +30,9 @@ func NewFader(img ImageObject) *Fader {
 // Calculate progresses the animation, and calls callback when the animation is finished.
 func (f *Fader) Calculate(callback func()) {
 	if f.t >= 1.0 {
-		callback()
+		if callback != nil {
+			callback()
+		}
 		return
 	}
 	f.t += 0.008
@@ -64,7 +66,9 @@ func (e *Easer[O]) Calculate(callback func()) {
 		e.start = y
 	})
 	if e.t >= 1.0 {
-		callback()
+		if callback != nil {
+			callback()
+		}
 		return
 	}
 	x, _ := e.O.GetPosition()
