@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kipukun/game/engine/object"
 )
 
 type tsx struct {
@@ -85,7 +86,9 @@ func NewTileSheetFromTSX(sheet, file io.Reader) *TileSheet {
 	return NewTileSheet(img, dx, dy)
 }
 
-func NewTileMapFromTMX(s *TileSheet, file io.Reader) *ebiten.Image {
+func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string][]object.ImageObject) {
+	om := make(map[string][]object.ImageObject)
+
 	xdec := xml.NewDecoder(file)
 	var tmx *tmx
 	err := xdec.Decode(&tmx)
@@ -112,6 +115,12 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) *ebiten.Image {
 
 	img := ebiten.NewImage(dx*width, dy*height)
 	for _, layer := range tmx.Layer {
+		var objectLayer bool
+		var prefix string
+		if strings.HasPrefix(layer.Name, "objects:") {
+			prefix = strings.TrimPrefix(layer.Name, "objects:")
+			objectLayer = true
+		}
 		cdec := csv.NewReader(strings.NewReader(layer.Data.Text))
 		cdec.FieldsPerRecord = -1
 		records, err := cdec.ReadAll()
@@ -127,11 +136,25 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) *ebiten.Image {
 				if err != nil {
 					panic(err)
 				}
+				if coord == 0 {
+					continue
+				}
 				t, o := s.Tile(coord, 0)
-				o.GeoM.Translate(float64((j)%width*dx), float64(i*dy))
+				posx, posy := float64((j)%width*dx), float64(i*dy)
+				if objectLayer {
+					obj := object.FromEbitenImage(t)
+					obj.SetPosition(posx, posy)
+					if om[prefix] == nil {
+						om[prefix] = []object.ImageObject{
+							obj,
+						}
+					}
+					om[prefix] = append(om[prefix], obj)
+				}
+				o.GeoM.Translate(posx, posy)
 				img.DrawImage(t, o)
 			}
 		}
 	}
-	return img
+	return img, om
 }

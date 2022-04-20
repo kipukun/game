@@ -14,7 +14,7 @@ type PlayState struct {
 	player object.ImageObject
 	title  *object.Pinner
 	sheet  *tile.TileSheet
-	world  object.ImageObject
+	world  *ebiten.Image
 }
 
 func (ps *PlayState) Update(e *engine.Engine) error {
@@ -22,22 +22,25 @@ func (ps *PlayState) Update(e *engine.Engine) error {
 }
 
 func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
-	s.DrawImage(ps.world.Image())
+	s.DrawImage(ps.world, nil)
 	s.DrawImage(ps.player.Image())
 	s.DrawImage(ps.title.Image(e.Camera.Pos()))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) {
-	w, h := e.Size()
+	w, _ := e.Size()
 
 	ps.sheet = tile.NewTileSheetFromTSX(e.Asset("assets/tiles/tile_sheet.png"), e.Asset("assets/tiles/tile_set.tsx"))
-	ps.world = object.FromEbitenImage(tile.NewTileMapFromTMX(ps.sheet, e.Asset("assets/tiles/tile_map.tmx")))
-	fmt.Println(ps.world.Size())
+	worldImg, worldObjects := tile.NewTileMapFromTMX(ps.sheet, e.Asset("assets/tiles/tile_map.tmx"))
+	ps.world = worldImg
+	fmt.Println(worldObjects)
+	startingTile := worldObjects["blue_spaces"][10]
 
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
 	ps.player = object.FromEbitenImage(player)
-	object.Middle(w, h, ps.player)
+	ps.player.SetPosition(startingTile.GetPosition())
+	// object.Middle(w, h, ps.player)
 
 	title := object.FromText(e.Font(), "PLAYER 1\nTROPHIES: 0\n$: 0", color.White)
 	object.CenterH(w, title)
