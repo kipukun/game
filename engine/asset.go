@@ -8,10 +8,7 @@ import (
 )
 
 func (e *Engine) NewEbitenFromAsset(p string) *ebiten.Image {
-	r, err := e.Asset(p)
-	if err != nil {
-		panic(err)
-	}
+	r := e.Asset(p)
 	img, _, err := image.Decode(r)
 	if err != nil {
 		panic(err)

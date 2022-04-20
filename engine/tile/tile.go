@@ -23,6 +23,7 @@ func (ts *TileSheet) TileSize() (int, int) {
 }
 
 func (ts *TileSheet) Tile(x, y int) (*ebiten.Image, *ebiten.DrawImageOptions) {
+	x = x - 1
 	img := ts.sheet.SubImage(image.Rect(ts.dx*x, ts.dy*y, ts.dx*x+ts.dx, ts.dy*y+ts.dy))
 	return ebiten.NewImageFromImage(img), &ebiten.DrawImageOptions{}
 }

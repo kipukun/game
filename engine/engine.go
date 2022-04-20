@@ -78,7 +78,7 @@ func (e *Engine) KeepHandlers() {
 	e.hgph.keepFlag = true
 }
 
-func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
+func (e *Engine) Asset(path string) io.ReadSeekCloser {
 	return asset(e.fs, path)
 }
 

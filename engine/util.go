@@ -10,10 +10,10 @@ func head[T any](array []T) T {
 	return array[len(array)-1]
 }
 
-func asset(f fs.FS, path string) (io.ReadSeekCloser, error) {
+func asset(f fs.FS, path string) io.ReadSeekCloser {
 	bs, err := fs.ReadFile(f, path)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return &bscloser{bytes.NewReader(bs)}, nil
+	return &bscloser{bytes.NewReader(bs)}
 }

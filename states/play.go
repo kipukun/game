@@ -1,7 +1,7 @@
 package states
 
 import (
-	"image"
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -30,25 +30,16 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 func (ps *PlayState) Init(e *engine.Engine) {
 	w, h := e.Size()
 
-	layer1 := make([]image.Point, 0)
-	for i := 0; i <= 32*2*24+1; i++ {
-		layer1 = append(layer1, image.Pt(5, 0))
-	}
-
-	layers := [][]image.Point{
-		layer1,
-	}
-
-	ps.sheet = tile.NewTileSheet(e.NewEbitenFromAsset("assets/tiles/tile_sheet.png"), 10, 10)
-	tm := tile.NewTileMap(ps.sheet, layers, 64)
-	ps.world = object.FromEbitenImage(tm)
+	ps.sheet = tile.NewTileSheetFromTSX(e.Asset("assets/tiles/tile_sheet.png"), e.Asset("assets/tiles/tile_set.tsx"))
+	ps.world = object.FromEbitenImage(tile.NewTileMapFromTMX(ps.sheet, e.Asset("assets/tiles/tile_map.tmx")))
+	fmt.Println(ps.world.Size())
 
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
 	ps.player = object.FromEbitenImage(player)
 	object.Middle(w, h, ps.player)
 
-	title := object.FromText(e.Font(), "HEALTH: <3 <3 <3", color.White)
+	title := object.FromText(e.Font(), "PLAYER 1\nTROPHIES: 0\n$: 0", color.White)
 	object.CenterH(w, title)
 	tx, ty := title.GetPosition()
 	title.SetPosition(tx, ty+40)
