@@ -31,7 +31,6 @@ type PlayState struct {
 	title  *object.Pinner
 	sheet  *tile.TileSheet
 	world  *ebiten.Image
-	idx    int
 }
 
 func (ps *PlayState) Update(e *engine.Engine) error {
@@ -43,7 +42,7 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ps.world, nil)
 	s.DrawImage(ps.player.io.Image())
 	s.DrawImage(ps.title.Image(e.Camera.Pos()))
-	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d", ps.idx))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f", ps.player.idx, ebiten.CurrentTPS()))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) {
@@ -75,36 +74,28 @@ func (ps *PlayState) Register(e *engine.Engine) {
 		e.PopState()
 	})
 	e.RegisterHeldKey(ebiten.KeyLeft, func(e *engine.Engine) {
-		x, y := ps.player.io.GetPosition()
-		ps.player.io.SetPosition(x-1, y)
+		object.Translate(ps.player.io, -1, 0)
 	})
 	e.RegisterHeldKey(ebiten.KeyRight, func(e *engine.Engine) {
-		x, y := ps.player.io.GetPosition()
-		ps.player.io.SetPosition(x+1, y)
+		object.Translate(ps.player.io, 1, 0)
 	})
 	e.RegisterHeldKey(ebiten.KeyUp, func(e *engine.Engine) {
-		x, y := ps.player.io.GetPosition()
-		ps.player.io.SetPosition(x, y-1)
+		object.Translate(ps.player.io, 0, -1)
 	})
 	e.RegisterHeldKey(ebiten.KeyDown, func(e *engine.Engine) {
-		x, y := ps.player.io.GetPosition()
-		ps.player.io.SetPosition(x, y+1)
+		object.Translate(ps.player.io, 0, 1)
 	})
 	e.RegisterHeldKey(ebiten.KeyA, func(e *engine.Engine) {
-		x, y := e.Camera.GetPosition()
-		e.Camera.SetPosition(x-1, y)
+		object.Translate(e.Camera, -1, 0)
 	})
 	e.RegisterHeldKey(ebiten.KeyD, func(e *engine.Engine) {
-		x, y := e.Camera.GetPosition()
-		e.Camera.SetPosition(x+1, y)
+		object.Translate(e.Camera, 1, 0)
 	})
 	e.RegisterHeldKey(ebiten.KeyW, func(e *engine.Engine) {
-		x, y := e.Camera.GetPosition()
-		e.Camera.SetPosition(x, y-1)
+		object.Translate(e.Camera, 0, -1)
 	})
 	e.RegisterHeldKey(ebiten.KeyS, func(e *engine.Engine) {
-		x, y := e.Camera.GetPosition()
-		e.Camera.SetPosition(x, y+1)
+		object.Translate(e.Camera, 0, 1)
 	})
 	e.RegisterKey(ebiten.KeySpace, func(e *engine.Engine) {
 		ps.player.move(1)
