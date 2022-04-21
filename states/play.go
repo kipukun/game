@@ -14,7 +14,7 @@ import (
 type player struct {
 	io    object.ImageObject
 	path  object.Collection
-	fader object.Easer[object.ImageObject]
+	easer func()
 	idx   int
 }
 
@@ -23,7 +23,7 @@ func (p *player) move(dx int) {
 	if p.idx >= p.path.Len() || p.idx < 0 {
 		p.idx = 0
 	}
-	p.io.SetPosition(p.path[p.idx].GetPosition())
+	p.easer = object.EaserTo(p.io)(p.path[p.idx])
 }
 
 type PlayState struct {
@@ -35,6 +35,7 @@ type PlayState struct {
 }
 
 func (ps *PlayState) Update(e *engine.Engine) error {
+	ps.player.easer()
 	return nil
 }
 
@@ -58,9 +59,10 @@ func (ps *PlayState) Init(e *engine.Engine) {
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
 	p1.io = object.FromEbitenImage(player)
-	ps.player = p1
+	p1.io.SetPosition(worldObjects["blue_spaces"][0].GetPosition())
+	p1.easer = func() {}
 
-	ps.player.move(-1)
+	ps.player = p1
 
 	title := object.FromText(e.Font(), "PLAYER 1 | ¥: 0 / $: 0", color.White)
 	tx, ty := object.CenterH(w, title)

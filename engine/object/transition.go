@@ -1,8 +1,6 @@
 package object
 
 import (
-	"sync"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -44,35 +42,27 @@ func (f *Fader) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return img, o
 }
 
-// Easer implements an ease transition, moving an Object to a position using a parametric Bezier curve.
-type Easer[O Object] struct {
-	O     O
-	t     float64
-	end   float64
-	start float64
-	once  sync.Once
-}
-
-func NewEaser[O Object](o O, end float64) *Easer[O] {
-	e := new(Easer[O])
-	e.O = o
-	e.end = end
-	return e
-}
-
-func (e *Easer[O]) Calculate(callback func()) {
-	e.once.Do(func() {
-		_, y := e.O.GetPosition()
-		e.start = y
-	})
-	if e.t >= 1.0 {
-		if callback != nil {
-			callback()
+// Ease takes in an Object and returns a function that when called, eases o by (tx, ty).
+func Easer[O Object](o O) func(x, y float64) {
+	t := 0.0
+	startx, starty := o.GetPosition()
+	return func(tx, ty float64) {
+		if t >= 1 {
+			return
 		}
-		return
+		t += 0.01
+		frac := t * t * (3.0 - 2.0*t)
+		o.SetPosition(startx+tx*frac, starty+ty*frac)
 	}
-	x, _ := e.O.GetPosition()
-	e.t += 0.01
-	frac := e.t * e.t * (3.0 - 2.0*e.t)
-	e.O.SetPosition(x, e.start+e.end*frac)
+}
+
+func EaserTo(o Object) func(t Object) func() {
+	e := Easer(o)
+	ox, oy := o.GetPosition()
+	return func(t Object) func() {
+		return func() {
+			tx, ty := t.GetPosition()
+			e(tx-ox, ty-oy)
+		}
+	}
 }

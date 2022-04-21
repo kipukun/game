@@ -13,7 +13,8 @@ import (
 
 type IntroTitleState struct {
 	music, menu_move, sel *engine.AudioPlayer
-	title                 *object.Easer[object.ImageObject]
+	title                 object.ImageObject
+	titleEaser            func(x, y float64)
 	menu                  []*object.Fader
 	pointer               *object.Fader
 	px, py                float64
@@ -53,25 +54,26 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	its.px, its.py = pointer.GetPosition()
 	its.pointer = object.NewFader(pointer)
 
-	its.title = object.NewEaser(object.FromText(e.Font(), "JRPG", color.White), -h+40)
-	nx, _ := object.CenterH(w, its.title.O)
-	its.title.O.SetPosition(nx, h)
+	its.title = object.FromText(e.Font(), "JRPG", color.White)
+	nx, _ := object.CenterH(w, its.title)
+	its.title.SetPosition(nx, h)
+	its.titleEaser = object.Easer(its.title)
 
 	its.music.Play()
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine) error {
-	its.title.Calculate(func() {
-		for _, o := range its.menu {
-			o.Calculate(nil)
-		}
-		its.pointer.Calculate(nil)
-	})
+	_, h := e.Size()
+	its.titleEaser(0, -h+40)
+	for _, o := range its.menu {
+		o.Calculate(nil)
+	}
+	its.pointer.Calculate(nil)
 	return nil
 }
 
 func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
-	s.DrawImage(its.title.O.Image())
+	s.DrawImage(its.title.Image())
 	for _, o := range its.menu {
 		s.DrawImage(o.Image())
 	}

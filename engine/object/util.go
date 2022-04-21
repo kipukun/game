@@ -45,3 +45,8 @@ func L1Distance(p, q Object) float64 {
 	q1, q2 := q.GetPosition()
 	return math.Abs(q1-p1) + math.Abs(q2-p2)
 }
+
+func Translate(o Object, dx, dy float64) {
+	x, y := o.GetPosition()
+	o.SetPosition(x+dx, y+dy)
+}
