@@ -86,8 +86,8 @@ func NewTileSheetFromTSX(sheet, file io.Reader) *TileSheet {
 	return NewTileSheet(img, dx, dy)
 }
 
-func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string][]object.ImageObject) {
-	om := make(map[string][]object.ImageObject)
+func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]object.Collection) {
+	om := make(map[string]object.Collection)
 
 	xdec := xml.NewDecoder(file)
 	var tmx *tmx
@@ -140,14 +140,12 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 					continue
 				}
 				t, o := s.Tile(coord, 0)
-				posx, posy := float64((j)%width*dx), float64(i*dy)
+				posx, posy := float64(j%width*dx), float64(i*dy)
 				if objectLayer {
 					obj := object.FromEbitenImage(t)
 					obj.SetPosition(posx, posy)
 					if om[prefix] == nil {
-						om[prefix] = []object.ImageObject{
-							obj,
-						}
+						om[prefix] = object.NewCollection()
 					}
 					om[prefix] = append(om[prefix], obj)
 				}

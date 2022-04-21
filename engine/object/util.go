@@ -1,5 +1,7 @@
 package object
 
+import "math"
+
 // CenterV centers o on s vertically and returns its new position.
 func CenterV(h float64, o Object) (float64, float64) {
 	_, Dy := o.Size()
@@ -29,4 +31,17 @@ func Offset(o, from Object, n float64, d Direction) (float64, float64) {
 	_, y := o.GetPosition()
 	o.SetPosition(fromx-n, y)
 	return fromx - n, y
+}
+
+// Distance returns the Euclidean distance between p and q.
+func Distance(p, q Object) float64 {
+	p1, p2 := p.GetPosition()
+	q1, q2 := q.GetPosition()
+	return math.Sqrt(math.Pow(q1-p1, 2) + math.Pow(q2-p2, 2))
+}
+
+func L1Distance(p, q Object) float64 {
+	p1, p2 := p.GetPosition()
+	q1, q2 := q.GetPosition()
+	return math.Abs(q1-p1) + math.Abs(q2-p2)
 }

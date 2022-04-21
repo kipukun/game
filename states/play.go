@@ -5,16 +5,33 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 	"github.com/kipukun/game/engine/tile"
 )
 
+type player struct {
+	io    object.ImageObject
+	path  object.Collection
+	fader object.Easer[object.ImageObject]
+	idx   int
+}
+
+func (p *player) move(dx int) {
+	p.idx += dx
+	if p.idx >= p.path.Len() || p.idx < 0 {
+		p.idx = 0
+	}
+	p.io.SetPosition(p.path[p.idx].GetPosition())
+}
+
 type PlayState struct {
-	player object.ImageObject
+	player *player
 	title  *object.Pinner
 	sheet  *tile.TileSheet
 	world  *ebiten.Image
+	idx    int
 }
 
 func (ps *PlayState) Update(e *engine.Engine) error {
@@ -23,8 +40,9 @@ func (ps *PlayState) Update(e *engine.Engine) error {
 
 func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ps.world, nil)
-	s.DrawImage(ps.player.Image())
+	s.DrawImage(ps.player.io.Image())
 	s.DrawImage(ps.title.Image(e.Camera.Pos()))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d", ps.idx))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) {
@@ -33,18 +51,19 @@ func (ps *PlayState) Init(e *engine.Engine) {
 	ps.sheet = tile.NewTileSheetFromTSX(e.Asset("assets/tiles/tile_sheet.png"), e.Asset("assets/tiles/tile_set.tsx"))
 	worldImg, worldObjects := tile.NewTileMapFromTMX(ps.sheet, e.Asset("assets/tiles/tile_map.tmx"))
 	ps.world = worldImg
-	fmt.Println(worldObjects)
-	startingTile := worldObjects["blue_spaces"][10]
 
+	p1 := new(player)
+	worldObjects["blue_spaces"].Sort()
+	p1.path = worldObjects["blue_spaces"]
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
-	ps.player = object.FromEbitenImage(player)
-	ps.player.SetPosition(startingTile.GetPosition())
-	// object.Middle(w, h, ps.player)
+	p1.io = object.FromEbitenImage(player)
+	ps.player = p1
 
-	title := object.FromText(e.Font(), "PLAYER 1\nTROPHIES: 0\n$: 0", color.White)
-	object.CenterH(w, title)
-	tx, ty := title.GetPosition()
+	ps.player.move(-1)
+
+	title := object.FromText(e.Font(), "PLAYER 1 | ¥: 0 / $: 0", color.White)
+	tx, ty := object.CenterH(w, title)
 	title.SetPosition(tx, ty+40)
 	ps.title = object.NewPinner(title)
 }
@@ -54,20 +73,20 @@ func (ps *PlayState) Register(e *engine.Engine) {
 		e.PopState()
 	})
 	e.RegisterHeldKey(ebiten.KeyLeft, func(e *engine.Engine) {
-		x, y := ps.player.GetPosition()
-		ps.player.SetPosition(x-1, y)
+		x, y := ps.player.io.GetPosition()
+		ps.player.io.SetPosition(x-1, y)
 	})
 	e.RegisterHeldKey(ebiten.KeyRight, func(e *engine.Engine) {
-		x, y := ps.player.GetPosition()
-		ps.player.SetPosition(x+1, y)
+		x, y := ps.player.io.GetPosition()
+		ps.player.io.SetPosition(x+1, y)
 	})
 	e.RegisterHeldKey(ebiten.KeyUp, func(e *engine.Engine) {
-		x, y := ps.player.GetPosition()
-		ps.player.SetPosition(x, y-1)
+		x, y := ps.player.io.GetPosition()
+		ps.player.io.SetPosition(x, y-1)
 	})
 	e.RegisterHeldKey(ebiten.KeyDown, func(e *engine.Engine) {
-		x, y := ps.player.GetPosition()
-		ps.player.SetPosition(x, y+1)
+		x, y := ps.player.io.GetPosition()
+		ps.player.io.SetPosition(x, y+1)
 	})
 	e.RegisterHeldKey(ebiten.KeyA, func(e *engine.Engine) {
 		x, y := e.Camera.GetPosition()
@@ -84,5 +103,8 @@ func (ps *PlayState) Register(e *engine.Engine) {
 	e.RegisterHeldKey(ebiten.KeyS, func(e *engine.Engine) {
 		x, y := e.Camera.GetPosition()
 		e.Camera.SetPosition(x, y+1)
+	})
+	e.RegisterKey(ebiten.KeySpace, func(e *engine.Engine) {
+		ps.player.move(1)
 	})
 }
