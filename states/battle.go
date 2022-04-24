@@ -12,15 +12,12 @@ func (bs *BattleState) Update(e *engine.Engine) error {
 }
 
 func (bs *BattleState) Draw(e *engine.Engine, s *ebiten.Image) {
-	return
 }
 
 // Init is called when the State is first pushed onto the engine stack.
 func (bs *BattleState) Init(e *engine.Engine) {
-	return
 }
 
 // Register is called everytime this state becomes the active state.
 func (bs *BattleState) Register(e *engine.Engine) {
-	return
 }

@@ -14,17 +14,17 @@ import (
 
 type titleEntity struct {
 	io    object.ImageObject
-	easer transform.EaserFunc
+	easer transform.ChangeFunc
 }
 
 type menuEntity struct {
 	options []object.ImageObject
-	faders  []transform.FaderFunc
+	faders  []transform.ChangeFunc
 }
 
 type pointerEntity struct {
 	io    object.ImageObject
-	fader transform.FaderFunc
+	fader transform.ChangeFunc
 }
 
 type IntroTitleState struct {
@@ -33,6 +33,7 @@ type IntroTitleState struct {
 	menu                  *menuEntity
 	pointer               *pointerEntity
 	px, py                float64
+	ch                    transform.ChangeFunc
 	index                 int
 }
 
@@ -53,7 +54,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	menu := []string{"PLAY", "OPTIONS", "QUIT"}
 	menuEntity := new(menuEntity)
 	menuEntity.options = make([]object.ImageObject, 0)
-	menuEntity.faders = make([]transform.FaderFunc, 0)
+	menuEntity.faders = make([]transform.ChangeFunc, 0)
 
 	w, h := e.Size()
 
@@ -62,7 +63,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
 		menuEntity.options = append(menuEntity.options, o)
-		menuEntity.faders = append(menuEntity.faders, transform.Fader(o, transform.Linear, 3*time.Second))
+		menuEntity.faders = append(menuEntity.faders, transform.Fader(o, transform.Linear, 1*time.Second))
 		object.Transparent(o)
 	}
 	its.menu = menuEntity
@@ -70,7 +71,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	its.pointer = new(pointerEntity)
 	its.pointer.io = object.FromText(e.Font(), ">", color.White)
 	object.Transparent(its.pointer.io)
-	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, 3*time.Second)
+	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, 1*time.Second)
 	fromx, fromy := its.menu.options[0].GetPosition()
 	its.pointer.io.SetPosition(fromx-30, fromy)
 	its.px, its.py = its.pointer.io.GetPosition()
@@ -80,18 +81,20 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	nx, _ := object.CenterH(w, its.title.io)
 	its.title.io.SetPosition(nx, h)
 
-	its.title.easer = transform.Easer(its.title.io, transform.EaseInOutCubic, 3*time.Second)
+	its.title.easer = transform.Easer(its.title.io, 0, -h+40, transform.EaseInOutCubic, 5*time.Second)
+
+	its.ch = transform.Chain(its.title.easer, its.pointer.fader, transform.Combine(its.menu.faders...))
 
 	its.music.Play()
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
-	_, h := e.Size()
-	its.title.easer(dt, 0, -h+40)
+	its.ch(dt)
+	/*its.title.easer(dt)
 	for _, fader := range its.menu.faders {
 		fader(dt)
 	}
-	its.pointer.fader(dt)
+	its.pointer.fader(dt) */
 	return nil
 }
 

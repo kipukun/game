@@ -16,7 +16,7 @@ import (
 type player struct {
 	io    object.ImageObject
 	path  object.Collection
-	easer func(dt float64)
+	easer transform.ChangeFunc
 	idx   int
 }
 
@@ -25,7 +25,9 @@ func (p *player) move(dx int) {
 	if p.idx >= p.path.Len() || p.idx < 0 {
 		p.idx = 0
 	}
-	p.easer = transform.EaserTo(p.io, transform.Linear, time.Second)(p.path[p.idx])
+	sx, sy := p.io.GetPosition()
+	x, y := p.path[p.idx].GetPosition()
+	p.easer = transform.Easer(p.io, x-sx, y-sy, transform.Linear, time.Second)
 }
 
 type PlayState struct {
@@ -62,7 +64,7 @@ func (ps *PlayState) Init(e *engine.Engine) {
 	player.Fill(color.White)
 	p1.io = object.FromEbitenImage(player)
 	p1.io.SetPosition(worldObjects["blue_spaces"][0].GetPosition())
-	p1.easer = func(dt float64) {}
+	p1.easer = func(dt float64) float64 { return -1 }
 
 	ps.player = p1
 

@@ -8,11 +8,9 @@ import (
 	"github.com/kipukun/game/engine/object"
 )
 
-type AnyFunc interface {
-	FaderFunc | EaserFunc
-}
-
 type TimeFunc func(t float64) float64
+
+type ChangeFunc func(dt float64) float64
 
 var (
 	Linear TimeFunc = func(t float64) float64 {
@@ -30,44 +28,30 @@ var (
 	}
 )
 
-type FaderFunc = func(dt float64)
-
-func Fader(io object.ImageObject, tf TimeFunc, dur time.Duration) FaderFunc {
+func Fader(io object.ImageObject, tf TimeFunc, dur time.Duration) ChangeFunc {
 	elapsed := 0.0
-	return func(dt float64) {
+	return func(dt float64) float64 {
 		no := &ebiten.DrawImageOptions{}
 		t := clamp(elapsed/dur.Seconds(), 0, 1)
 		frac := tf(t)
 		elapsed += dt
 		no.ColorM.Translate(0, 0, 0, lerp(-1, 0, frac))
 		io.SetOptions(no)
+		return t
 	}
 
 }
 
-type EaserFunc = func(dt, x, y float64)
-
 // Ease takes in an Object and returns a function that when called, eases o by (tx, ty).
-func Easer[O object.Object](o O, tf TimeFunc, dur time.Duration) func(dt, x, y float64) {
+func Easer[O object.Object](o O, tx, ty float64, tf TimeFunc, dur time.Duration) ChangeFunc {
 	elapsed := 0.0
 	startx, starty := o.GetPosition()
-	return func(dt, tx, ty float64) {
+	endx, endy := startx+tx, starty+ty
+	return func(dt float64) float64 {
 		t := clamp(elapsed/dur.Seconds(), 0, 1)
 		frac := tf(t)
 		elapsed += dt
-		o.SetPosition(lerp(startx, startx+tx, frac), lerp(starty, starty+ty, frac))
-	}
-}
-
-type EaserToFunc = func(t object.Object) func(dt float64)
-
-func EaserTo(o object.Object, tf TimeFunc, dur time.Duration) EaserToFunc {
-	e := Easer(o, tf, dur)
-	ox, oy := o.GetPosition()
-	return func(t object.Object) func(dt float64) {
-		return func(dt float64) {
-			tx, ty := t.GetPosition()
-			e(dt, tx-ox, ty-oy)
-		}
+		o.SetPosition(lerp(startx, endx, frac), lerp(starty, endy, frac))
+		return t
 	}
 }
