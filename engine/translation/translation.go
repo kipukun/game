@@ -1,7 +1,6 @@
 package translation
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -33,16 +32,10 @@ func Fader(io object.ImageObject, tf TimeFunc, dur time.Duration) FaderFunc {
 	elapsed := 0.0
 	return func(dt float64) {
 		no := &ebiten.DrawImageOptions{}
-		t := elapsed / dur.Seconds()
-		fmt.Printf("t: %f\r", t)
-		if t >= 1.0 {
-			no.ColorM.Translate(0, 0, 0, 0)
-			io.SetOptions(no)
-			return
-		}
-		t = tf(t)
+		t := clamp(elapsed/dur.Seconds(), 0, 1)
+		frac := tf(t)
 		elapsed += dt
-		no.ColorM.Translate(0, 0, 0, lerp(-1, 0, t))
+		no.ColorM.Translate(0, 0, 0, lerp(-1, 0, frac))
 		io.SetOptions(no)
 	}
 
@@ -55,14 +48,10 @@ func Easer[O object.Object](o O, tf TimeFunc, dur time.Duration) func(dt, x, y f
 	elapsed := 0.0
 	startx, starty := o.GetPosition()
 	return func(dt, tx, ty float64) {
-		t := elapsed / dur.Seconds()
-		if t >= 1.0 {
-			return
-		}
+		t := clamp(elapsed/dur.Seconds(), 0, 1)
+		frac := tf(t)
 		elapsed += dt
-		t = tf(t)
-		o.SetPosition(lerp(startx, startx+tx, t), lerp(starty, starty+ty, t))
-		fmt.Printf("t: %f\r", t)
+		o.SetPosition(lerp(startx, startx+tx, frac), lerp(starty, starty+ty, frac))
 	}
 }
 
