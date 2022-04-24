@@ -15,9 +15,12 @@ type ImageObject interface {
 	Object
 
 	Image() (*ebiten.Image, *ebiten.DrawImageOptions)
+
+	SetOptions(opt *ebiten.DrawImageOptions)
 }
 
 type imgobj struct {
+	opt *ebiten.DrawImageOptions
 	img *ebiten.Image // underlying image
 	Object
 }
@@ -28,14 +31,20 @@ func (io *imgobj) Size() (int, int) {
 
 func (io *imgobj) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	x, y := io.GetPosition()
-	o := new(ebiten.DrawImageOptions)
-	o.GeoM.Translate(x, y)
-	return io.img, o
+	og := &ebiten.DrawImageOptions{}
+	og.GeoM.Translate(x, y)
+	io.opt.GeoM = og.GeoM
+	return io.img, io.opt
+}
+
+func (io *imgobj) SetOptions(opt *ebiten.DrawImageOptions) {
+	io.opt = opt
 }
 
 // FromText returns an ImageObject that is rendered using the engine's font and the supplied text.
 func FromText(ft font.Face, t string, c color.Color) ImageObject {
 	io := new(imgobj)
+	io.opt = &ebiten.DrawImageOptions{}
 	r := text.BoundString(ft, t)
 	io.img = ebiten.NewImage(r.Dx(), r.Dy())
 	io.Object = NewEmpty(r.Dx(), r.Dy())
@@ -46,6 +55,7 @@ func FromText(ft font.Face, t string, c color.Color) ImageObject {
 // FromAsset returns an object.ImageObject with the supplied asset, or nil and an error.
 func FromReader(r io.Reader, p string) (ImageObject, error) {
 	io := new(imgobj)
+	io.opt = &ebiten.DrawImageOptions{}
 	img, _, err := image.Decode(r)
 	if err != nil {
 		return nil, err
@@ -59,6 +69,7 @@ func FromReader(r io.Reader, p string) (ImageObject, error) {
 // FromImage returns an object.ImageObject from an image.Image.
 func FromImage(img image.Image) ImageObject {
 	io := new(imgobj)
+	io.opt = &ebiten.DrawImageOptions{}
 	io.Object = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
 	io.img = ebiten.NewImageFromImage(img)
 	return io
@@ -68,6 +79,7 @@ func FromEbitenImage(eimg *ebiten.Image) ImageObject {
 	io := new(imgobj)
 	io.img = eimg
 	io.Object = NewEmpty(eimg.Bounds().Dx(), eimg.Bounds().Dy())
+	io.opt = &ebiten.DrawImageOptions{}
 	return io
 }
 

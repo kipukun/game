@@ -39,6 +39,12 @@ func (ao *animatedObject) Rewind() {
 	ao.i -= 1
 }
 
+func (ao *animatedObject) SetOptions(opt *ebiten.DrawImageOptions) {
+	for _, o := range ao.frames {
+		o.SetOptions(opt)
+	}
+}
+
 func (ao *animatedObject) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return ao.frames[ao.i].Image()
 }

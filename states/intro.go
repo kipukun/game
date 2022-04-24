@@ -18,12 +18,13 @@ type titleEntity struct {
 }
 
 type menuEntity struct {
-	opt     *ebiten.DrawImageOptions
 	options []object.ImageObject
+	faders  []translation.FaderFunc
 }
 
 type pointerEntity struct {
-	io object.ImageObject
+	io    object.ImageObject
+	fader translation.FaderFunc
 }
 
 type IntroTitleState struct {
@@ -31,7 +32,6 @@ type IntroTitleState struct {
 	title                 *titleEntity
 	menu                  *menuEntity
 	pointer               *pointerEntity
-	fader                 translation.FaderFunc
 	px, py                float64
 	index                 int
 }
@@ -53,8 +53,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	menu := []string{"PLAY", "OPTIONS", "QUIT"}
 	menuEntity := new(menuEntity)
 	menuEntity.options = make([]object.ImageObject, 0)
-
-	its.fader = translation.Fader(translation.Linear, 3*time.Second)
+	menuEntity.faders = make([]translation.FaderFunc, 0)
 
 	w, h := e.Size()
 
@@ -63,11 +62,15 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
 		menuEntity.options = append(menuEntity.options, o)
+		menuEntity.faders = append(menuEntity.faders, translation.Fader(o, translation.Linear, 3*time.Second))
+		object.Transparent(o)
 	}
 	its.menu = menuEntity
 
 	its.pointer = new(pointerEntity)
 	its.pointer.io = object.FromText(e.Font(), ">", color.White)
+	object.Transparent(its.pointer.io)
+	its.pointer.fader = translation.Fader(its.pointer.io, translation.Linear, 3*time.Second)
 	fromx, fromy := its.menu.options[0].GetPosition()
 	its.pointer.io.SetPosition(fromx-30, fromy)
 	its.px, its.py = its.pointer.io.GetPosition()
@@ -85,7 +88,10 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
 	_, h := e.Size()
 	its.title.easer(dt, 0, -h+40)
-	its.fader(dt)
+	for _, fader := range its.menu.faders {
+		fader(dt)
+	}
+	its.pointer.fader(dt)
 	return nil
 }
 

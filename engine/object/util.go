@@ -1,6 +1,10 @@
 package object
 
-import "math"
+import (
+	"math"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 // CenterV centers o on s vertically and returns its new position.
 func CenterV(h float64, o Object) (float64, float64) {
@@ -49,4 +53,10 @@ func L1Distance(p, q Object) float64 {
 func Translate(o Object, dx, dy float64) {
 	x, y := o.GetPosition()
 	o.SetPosition(x+dx, y+dy)
+}
+
+func Transparent(io ImageObject) {
+	no := &ebiten.DrawImageOptions{}
+	no.ColorM.Translate(0, 0, 0, -1)
+	io.SetOptions(no)
 }

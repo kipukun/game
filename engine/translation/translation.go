@@ -27,21 +27,23 @@ var (
 	}
 )
 
-type FaderFunc = func(dt float64) *ebiten.DrawImageOptions
+type FaderFunc = func(dt float64)
 
-func Fader(tf TimeFunc, dur time.Duration) FaderFunc {
+func Fader(io object.ImageObject, tf TimeFunc, dur time.Duration) FaderFunc {
 	elapsed := 0.0
-	return func(dt float64) *ebiten.DrawImageOptions {
+	return func(dt float64) {
 		no := &ebiten.DrawImageOptions{}
 		t := elapsed / dur.Seconds()
+		fmt.Printf("t: %f\r", t)
 		if t >= 1.0 {
-			no.ColorM.Translate(0, 0, 0, 1)
-			return no
+			no.ColorM.Translate(0, 0, 0, 0)
+			io.SetOptions(no)
+			return
 		}
 		t = tf(t)
 		elapsed += dt
-		no.ColorM.Translate(0, 0, 0, lerp(0, 1, t))
-		return no
+		no.ColorM.Translate(0, 0, 0, lerp(-1, 0, t))
+		io.SetOptions(no)
 	}
 
 }
