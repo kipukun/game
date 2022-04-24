@@ -1,16 +1,17 @@
-package object
+package translation
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kipukun/game/engine/object"
 )
 
 // Fader is able to fade an ImageObject from transparent to opaque.
 type Fader struct {
-	ImageObject
+	object.ImageObject
 	t float64
 }
 
-func NewFader(img ImageObject) *Fader {
+func NewFader(img object.ImageObject) *Fader {
 	f := new(Fader)
 	f.ImageObject = img
 	return f
@@ -34,7 +35,7 @@ func (f *Fader) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 }
 
 // Ease takes in an Object and returns a function that when called, eases o by (tx, ty).
-func Easer[O Object](o O) func(x, y float64) {
+func Easer[O object.Object](o O) func(x, y float64) {
 	t := 0.0
 	startx, starty := o.GetPosition()
 	return func(tx, ty float64) {
@@ -47,10 +48,10 @@ func Easer[O Object](o O) func(x, y float64) {
 	}
 }
 
-func EaserTo(o Object) func(t Object) func() {
+func EaserTo(o object.Object) func(t object.Object) func() {
 	e := Easer(o)
 	ox, oy := o.GetPosition()
-	return func(t Object) func() {
+	return func(t object.Object) func() {
 		return func() {
 			tx, ty := t.GetPosition()
 			e(tx-ox, ty-oy)

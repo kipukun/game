@@ -9,14 +9,15 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
+	"github.com/kipukun/game/engine/translation"
 )
 
 type IntroTitleState struct {
 	music, menu_move, sel *engine.AudioPlayer
 	title                 object.ImageObject
 	titleEaser            func(x, y float64)
-	menu                  []*object.Fader
-	pointer               *object.Fader
+	menu                  []*translation.Fader
+	pointer               *translation.Fader
 	px, py                float64
 	index                 int
 }
@@ -36,7 +37,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		log.Fatal(err)
 	}
 	menu := []string{"PLAY", "OPTIONS", "QUIT"}
-	its.menu = make([]*object.Fader, 0)
+	its.menu = make([]*translation.Fader, 0)
 
 	w, h := e.Size()
 
@@ -44,7 +45,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		o := object.FromText(e.Font(), item, color.White)
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
-		its.menu = append(its.menu, object.NewFader(o))
+		its.menu = append(its.menu, translation.NewFader(o))
 	}
 
 	pointer := object.FromText(e.Font(), ">", color.White)
@@ -52,17 +53,17 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	pointer.SetPosition(fromx-30, fromy)
 
 	its.px, its.py = pointer.GetPosition()
-	its.pointer = object.NewFader(pointer)
+	its.pointer = translation.NewFader(pointer)
 
 	its.title = object.FromText(e.Font(), "JRPG", color.White)
 	nx, _ := object.CenterH(w, its.title)
 	its.title.SetPosition(nx, h)
-	its.titleEaser = object.Easer(its.title)
+	its.titleEaser = translation.Easer(its.title)
 
 	its.music.Play()
 }
 
-func (its *IntroTitleState) Update(e *engine.Engine) error {
+func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
 	_, h := e.Size()
 	its.titleEaser(0, -h+40)
 	for _, o := range its.menu {

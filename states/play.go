@@ -9,6 +9,7 @@ import (
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 	"github.com/kipukun/game/engine/tile"
+	"github.com/kipukun/game/engine/translation"
 )
 
 type player struct {
@@ -23,7 +24,7 @@ func (p *player) move(dx int) {
 	if p.idx >= p.path.Len() || p.idx < 0 {
 		p.idx = 0
 	}
-	p.easer = object.EaserTo(p.io)(p.path[p.idx])
+	p.easer = translation.EaserTo(p.io)(p.path[p.idx])
 }
 
 type PlayState struct {
@@ -33,7 +34,7 @@ type PlayState struct {
 	world  *ebiten.Image
 }
 
-func (ps *PlayState) Update(e *engine.Engine) error {
+func (ps *PlayState) Update(e *engine.Engine, dt float64) error {
 	ps.player.easer()
 	return nil
 }

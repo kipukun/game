@@ -24,7 +24,7 @@ func progressBar(e *engine.Engine, len int) object.Animation {
 	return object.NewAnimationFromImages(fs)
 }
 
-func (ops *OptionsState) Update(e *engine.Engine) error {
+func (ops *OptionsState) Update(e *engine.Engine, dt float64) error {
 	return nil
 }
 

@@ -6,12 +6,18 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"time"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+)
+
+var (
+	timeNow, timeLast time.Time
+	delta             time.Duration
 )
 
 type bscloser struct {
@@ -25,7 +31,7 @@ func (b *bscloser) Close() error {
 // State defines the state of the game engine at some time.
 // A State is able to initialize itself, and change the state of the engine.
 type State interface {
-	Update(e *Engine) error
+	Update(e *Engine, dt float64) error
 	Draw(e *Engine, s *ebiten.Image)
 
 	// Init is called when the State is first pushed onto the engine stack.
@@ -177,8 +183,12 @@ func (e *Engine) Update() error {
 	e.gph.run(e)
 	e.hkeyh.run(e)
 	e.hgph.run(e)
+	timeNow = time.Now()
+	delta = timeNow.Sub(timeLast)
 	// let the current state update the engine.
-	return head(e.states).Update(e)
+	err := head(e.states).Update(e, delta.Seconds())
+	timeLast = timeNow
+	return err
 }
 
 // Draw implements ebiten.Game (kind of)
