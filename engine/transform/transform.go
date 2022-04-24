@@ -1,4 +1,4 @@
-package translation
+package transform
 
 import (
 	"math"
@@ -7,6 +7,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/kipukun/game/engine/object"
 )
+
+type AnyFunc interface {
+	FaderFunc | EaserFunc
+}
 
 type TimeFunc func(t float64) float64
 

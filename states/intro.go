@@ -9,22 +9,22 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
-	"github.com/kipukun/game/engine/translation"
+	"github.com/kipukun/game/engine/transform"
 )
 
 type titleEntity struct {
 	io    object.ImageObject
-	easer translation.EaserFunc
+	easer transform.EaserFunc
 }
 
 type menuEntity struct {
 	options []object.ImageObject
-	faders  []translation.FaderFunc
+	faders  []transform.FaderFunc
 }
 
 type pointerEntity struct {
 	io    object.ImageObject
-	fader translation.FaderFunc
+	fader transform.FaderFunc
 }
 
 type IntroTitleState struct {
@@ -53,7 +53,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	menu := []string{"PLAY", "OPTIONS", "QUIT"}
 	menuEntity := new(menuEntity)
 	menuEntity.options = make([]object.ImageObject, 0)
-	menuEntity.faders = make([]translation.FaderFunc, 0)
+	menuEntity.faders = make([]transform.FaderFunc, 0)
 
 	w, h := e.Size()
 
@@ -62,7 +62,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
 		menuEntity.options = append(menuEntity.options, o)
-		menuEntity.faders = append(menuEntity.faders, translation.Fader(o, translation.Linear, 3*time.Second))
+		menuEntity.faders = append(menuEntity.faders, transform.Fader(o, transform.Linear, 3*time.Second))
 		object.Transparent(o)
 	}
 	its.menu = menuEntity
@@ -70,7 +70,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	its.pointer = new(pointerEntity)
 	its.pointer.io = object.FromText(e.Font(), ">", color.White)
 	object.Transparent(its.pointer.io)
-	its.pointer.fader = translation.Fader(its.pointer.io, translation.Linear, 3*time.Second)
+	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, 3*time.Second)
 	fromx, fromy := its.menu.options[0].GetPosition()
 	its.pointer.io.SetPosition(fromx-30, fromy)
 	its.px, its.py = its.pointer.io.GetPosition()
@@ -80,7 +80,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	nx, _ := object.CenterH(w, its.title.io)
 	its.title.io.SetPosition(nx, h)
 
-	its.title.easer = translation.Easer(its.title.io, translation.EaseInOutCubic, 3*time.Second)
+	its.title.easer = transform.Easer(its.title.io, transform.EaseInOutCubic, 3*time.Second)
 
 	its.music.Play()
 }

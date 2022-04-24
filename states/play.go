@@ -10,7 +10,7 @@ import (
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 	"github.com/kipukun/game/engine/tile"
-	"github.com/kipukun/game/engine/translation"
+	"github.com/kipukun/game/engine/transform"
 )
 
 type player struct {
@@ -25,7 +25,7 @@ func (p *player) move(dx int) {
 	if p.idx >= p.path.Len() || p.idx < 0 {
 		p.idx = 0
 	}
-	p.easer = translation.EaserTo(p.io, translation.Linear, time.Second)(p.path[p.idx])
+	p.easer = transform.EaserTo(p.io, transform.Linear, time.Second)(p.path[p.idx])
 }
 
 type PlayState struct {
