@@ -3,6 +3,7 @@ package states
 import (
 	"fmt"
 	"image/color"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -15,7 +16,7 @@ import (
 type player struct {
 	io    object.ImageObject
 	path  object.Collection
-	easer func()
+	easer func(dt float64)
 	idx   int
 }
 
@@ -24,7 +25,7 @@ func (p *player) move(dx int) {
 	if p.idx >= p.path.Len() || p.idx < 0 {
 		p.idx = 0
 	}
-	p.easer = translation.EaserTo(p.io)(p.path[p.idx])
+	p.easer = translation.EaserTo(p.io, translation.EaseInSine, time.Second)(p.path[p.idx])
 }
 
 type PlayState struct {
@@ -32,10 +33,11 @@ type PlayState struct {
 	title  *object.Pinner
 	sheet  *tile.TileSheet
 	world  *ebiten.Image
+	dt     float64
 }
 
 func (ps *PlayState) Update(e *engine.Engine, dt float64) error {
-	ps.player.easer()
+	ps.player.easer(dt)
 	return nil
 }
 
@@ -43,7 +45,7 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ps.world, nil)
 	s.DrawImage(ps.player.io.Image())
 	s.DrawImage(ps.title.Image(e.Camera.Pos()))
-	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f", ps.player.idx, ebiten.CurrentTPS()))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f, dt: %f", ps.player.idx, ebiten.CurrentTPS(), ps.dt))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) {
@@ -60,7 +62,7 @@ func (ps *PlayState) Init(e *engine.Engine) {
 	player.Fill(color.White)
 	p1.io = object.FromEbitenImage(player)
 	p1.io.SetPosition(worldObjects["blue_spaces"][0].GetPosition())
-	p1.easer = func() {}
+	p1.easer = func(dt float64) {}
 
 	ps.player = p1
 

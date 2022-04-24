@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -15,7 +16,7 @@ import (
 type IntroTitleState struct {
 	music, menu_move, sel *engine.AudioPlayer
 	title                 object.ImageObject
-	titleEaser            func(x, y float64)
+	titleEaser            func(dt, x, y float64)
 	menu                  []*translation.Fader
 	pointer               *translation.Fader
 	px, py                float64
@@ -58,14 +59,16 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	its.title = object.FromText(e.Font(), "JRPG", color.White)
 	nx, _ := object.CenterH(w, its.title)
 	its.title.SetPosition(nx, h)
-	its.titleEaser = translation.Easer(its.title)
+	its.titleEaser = translation.Easer(its.title, translation.EaseInOutCubic, 3*time.Second)
 
 	its.music.Play()
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
 	_, h := e.Size()
-	its.titleEaser(0, -h+40)
+
+	its.titleEaser(dt, 0, -h+40)
+
 	for _, o := range its.menu {
 		o.Calculate(nil)
 	}
@@ -79,7 +82,7 @@ func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
 		s.DrawImage(o.Image())
 	}
 	s.DrawImage(its.pointer.Image())
-	ebitenutil.DebugPrint(s, fmt.Sprintf("%d, %s", its.index, ebiten.GamepadName(0)))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("%s", ebiten.GamepadName(0)))
 }
 
 func (its *IntroTitleState) Register(e *engine.Engine) {

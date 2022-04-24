@@ -1,8 +1,30 @@
 package translation
 
 import (
+	"fmt"
+	"math"
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/kipukun/game/engine/object"
+)
+
+type TimeFunc func(t float64) float64
+
+var (
+	Linear TimeFunc = func(t float64) float64 {
+		return t
+	}
+	EaseInSine TimeFunc = func(t float64) float64 {
+		return 1 - math.Cos((t*math.Pi)/2)
+	}
+	EaseInOutCubic TimeFunc = func(t float64) float64 {
+		if t < 0.5 {
+			return 4 * t * t * t
+		} else {
+			return 1 - math.Pow(-2*t+2, 3)/2
+		}
+	}
 )
 
 // Fader is able to fade an ImageObject from transparent to opaque.
@@ -35,26 +57,27 @@ func (f *Fader) Image() (*ebiten.Image, *ebiten.DrawImageOptions) {
 }
 
 // Ease takes in an Object and returns a function that when called, eases o by (tx, ty).
-func Easer[O object.Object](o O) func(x, y float64) {
-	t := 0.0
+func Easer[O object.Object](o O, tf TimeFunc, dur time.Duration) func(dt, x, y float64) {
+	elapsed := 0.0
 	startx, starty := o.GetPosition()
-	return func(tx, ty float64) {
-		if t >= 1 {
-			return
+	return func(dt, tx, ty float64) {
+		if elapsed >= dur.Seconds() {
+			elapsed = dur.Seconds()
 		}
-		t += 0.01
-		frac := t * t * (3.0 - 2.0*t)
-		o.SetPosition(startx+tx*frac, starty+ty*frac)
+		elapsed += dt
+		t := tf(elapsed / dur.Seconds())
+		o.SetPosition(lerp(startx, startx+tx, t), lerp(starty, starty+ty, t))
+		fmt.Printf("t: %f\r", t)
 	}
 }
 
-func EaserTo(o object.Object) func(t object.Object) func() {
-	e := Easer(o)
+func EaserTo(o object.Object, tf TimeFunc, dur time.Duration) func(t object.Object) func(dt float64) {
+	e := Easer(o, tf, dur)
 	ox, oy := o.GetPosition()
-	return func(t object.Object) func() {
-		return func() {
+	return func(t object.Object) func(dt float64) {
+		return func(dt float64) {
 			tx, ty := t.GetPosition()
-			e(tx-ox, ty-oy)
+			e(dt, tx-ox, ty-oy)
 		}
 	}
 }
