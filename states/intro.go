@@ -1,7 +1,6 @@
 package states
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"time"
@@ -13,12 +12,26 @@ import (
 	"github.com/kipukun/game/engine/translation"
 )
 
+type titleEntity struct {
+	io    object.ImageObject
+	easer translation.EaserFunc
+}
+
+type menuEntity struct {
+	opt     *ebiten.DrawImageOptions
+	options []object.ImageObject
+}
+
+type pointerEntity struct {
+	io object.ImageObject
+}
+
 type IntroTitleState struct {
 	music, menu_move, sel *engine.AudioPlayer
-	title                 object.ImageObject
-	titleEaser            func(dt, x, y float64)
-	menu                  []*translation.Fader
-	pointer               *translation.Fader
+	title                 *titleEntity
+	menu                  *menuEntity
+	pointer               *pointerEntity
+	fader                 translation.FaderFunc
 	px, py                float64
 	index                 int
 }
@@ -38,7 +51,10 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		log.Fatal(err)
 	}
 	menu := []string{"PLAY", "OPTIONS", "QUIT"}
-	its.menu = make([]*translation.Fader, 0)
+	menuEntity := new(menuEntity)
+	menuEntity.options = make([]object.ImageObject, 0)
+
+	its.fader = translation.Fader(translation.Linear, 3*time.Second)
 
 	w, h := e.Size()
 
@@ -46,43 +62,40 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		o := object.FromText(e.Font(), item, color.White)
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
-		its.menu = append(its.menu, translation.NewFader(o))
+		menuEntity.options = append(menuEntity.options, o)
 	}
+	its.menu = menuEntity
 
-	pointer := object.FromText(e.Font(), ">", color.White)
-	fromx, fromy := its.menu[0].GetPosition()
-	pointer.SetPosition(fromx-30, fromy)
+	its.pointer = new(pointerEntity)
+	its.pointer.io = object.FromText(e.Font(), ">", color.White)
+	fromx, fromy := its.menu.options[0].GetPosition()
+	its.pointer.io.SetPosition(fromx-30, fromy)
+	its.px, its.py = its.pointer.io.GetPosition()
 
-	its.px, its.py = pointer.GetPosition()
-	its.pointer = translation.NewFader(pointer)
+	its.title = new(titleEntity)
+	its.title.io = object.FromText(e.Font(), "JRPG", color.White)
+	nx, _ := object.CenterH(w, its.title.io)
+	its.title.io.SetPosition(nx, h)
 
-	its.title = object.FromText(e.Font(), "JRPG", color.White)
-	nx, _ := object.CenterH(w, its.title)
-	its.title.SetPosition(nx, h)
-	its.titleEaser = translation.Easer(its.title, translation.EaseInOutCubic, 3*time.Second)
+	its.title.easer = translation.Easer(its.title.io, translation.EaseInOutCubic, 3*time.Second)
 
 	its.music.Play()
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
 	_, h := e.Size()
-
-	its.titleEaser(dt, 0, -h+40)
-
-	for _, o := range its.menu {
-		o.Calculate(nil)
-	}
-	its.pointer.Calculate(nil)
+	its.title.easer(dt, 0, -h+40)
+	its.fader(dt)
 	return nil
 }
 
 func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
-	s.DrawImage(its.title.Image())
-	for _, o := range its.menu {
+	s.DrawImage(its.title.io.Image())
+	for _, o := range its.menu.options {
 		s.DrawImage(o.Image())
 	}
-	s.DrawImage(its.pointer.Image())
-	ebitenutil.DebugPrint(s, fmt.Sprintf("%s", ebiten.GamepadName(0)))
+	s.DrawImage(its.pointer.io.Image())
+	ebitenutil.DebugPrint(s, ebiten.GamepadName(0))
 }
 
 func (its *IntroTitleState) Register(e *engine.Engine) {
@@ -98,22 +111,22 @@ func (its *IntroTitleState) Register(e *engine.Engine) {
 
 func (its *IntroTitleState) menudown(e *engine.Engine) {
 	its.menu_move.Play()
-	if its.index+1 > len(its.menu)-1 {
+	if its.index+1 > len(its.menu.options)-1 {
 		its.index = 0
 	} else {
 		its.index += 1
 	}
-	its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
+	its.pointer.io.SetPosition(its.px, its.py+float64(its.index)*30)
 }
 
 func (its *IntroTitleState) menuup(e *engine.Engine) {
 	its.menu_move.Play()
 	if its.index-1 < 0 {
-		its.index = len(its.menu) - 1
+		its.index = len(its.menu.options) - 1
 	} else {
 		its.index -= 1
 	}
-	its.pointer.SetPosition(its.px, its.py+float64(its.index)*30)
+	its.pointer.io.SetPosition(its.px, its.py+float64(its.index)*30)
 }
 
 func (its *IntroTitleState) o(e *engine.Engine) {

@@ -25,7 +25,7 @@ func (p *player) move(dx int) {
 	if p.idx >= p.path.Len() || p.idx < 0 {
 		p.idx = 0
 	}
-	p.easer = translation.EaserTo(p.io, translation.EaseInSine, time.Second)(p.path[p.idx])
+	p.easer = translation.EaserTo(p.io, translation.Linear, time.Second)(p.path[p.idx])
 }
 
 type PlayState struct {
