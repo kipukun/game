@@ -49,7 +49,7 @@ func (ops *OptionsState) Init(e *engine.Engine) {
 	object.CenterH(w, ops.instructions)
 	ops.vlabel = object.FromText(e.Font(), "VOLUME", color.White)
 	object.Middle(w, h, ops.vlabel)
-	object.Offset(ops.vlabel, ops.vbar, 50, object.Left)
+	object.Offset(ops.vlabel, ops.vbar, 50)
 }
 
 func (ops *OptionsState) Register(e *engine.Engine) {

@@ -4,15 +4,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Direction int
-
-const (
-	Left Direction = iota
-	Right
-	Up
-	Down
-)
-
 // Fader is able to fade an ImageObject from transparent to opaque.
 type Fader struct {
 	ImageObject
