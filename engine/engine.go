@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/fs"
 	"log"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 var (
@@ -45,6 +47,7 @@ type State interface {
 // the ebiten.Game interface and maintains a stack of states.
 type Engine struct {
 	conf        *Config
+	debug       bool
 	fs          fs.FS
 	states      []State
 	Audio       *audioHandler
@@ -140,6 +143,12 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 		Size: 9,
 		DPI:  72,
 	})
+
+	e.KeepHandlers()
+	e.RegisterKey(ebiten.KeyEscape, func(e *Engine) {
+		e.ToggleDebugMode()
+	})
+
 	return nil
 }
 
@@ -148,6 +157,10 @@ func (e *Engine) changed() {
 	e.gph.deregister()
 	e.hkeyh.deregister()
 	e.hgph.deregister()
+}
+
+func (e *Engine) ToggleDebugMode() {
+	e.debug = !e.debug
 }
 
 // ChangeState sets the currently running state to s.
@@ -197,6 +210,10 @@ func (e *Engine) Draw(screen *ebiten.Image) {
 	e.vscreen.Clear()
 	head(e.states).Draw(e, e.vscreen)
 	screen.DrawImage(e.vscreen, e.Camera.View())
+
+	if e.debug {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f, TPS: %f, DT: %f", ebiten.CurrentFPS(), ebiten.CurrentTPS(), delta.Seconds()))
+	}
 }
 
 // Layout implements ebiten.Game

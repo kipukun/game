@@ -33,6 +33,7 @@ func (ih *inputHandler[T]) handle(k T, f func(e *Engine)) {
 // deregister removes the current State's keys, unless KeepHandlers was called.
 func (ih *inputHandler[T]) deregister() {
 	if ih.keepFlag {
+		ih.currentStateKeys = nil
 		ih.keepFlag = false
 		return
 	}
@@ -45,7 +46,6 @@ func (ih *inputHandler[T]) deregister() {
 		}
 		ih.keys[k] = ih.keys[k][:len(ih.keys[k])-1]
 	}
-	ih.currentStateKeys = nil
 }
 
 // run runs all registered handlers depending on current input.
