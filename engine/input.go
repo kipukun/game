@@ -46,6 +46,7 @@ func (ih *inputHandler[T]) deregister() {
 		}
 		ih.keys[k] = ih.keys[k][:len(ih.keys[k])-1]
 	}
+	ih.currentStateKeys = nil
 }
 
 // run runs all registered handlers depending on current input.
