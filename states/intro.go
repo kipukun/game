@@ -63,7 +63,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
 		menuEntity.options = append(menuEntity.options, o)
-		menuEntity.faders = append(menuEntity.faders, transform.Fader(o, transform.Linear, 1*time.Second))
+		menuEntity.faders = append(menuEntity.faders, transform.Fader(o, transform.Linear, time.Second))
 		object.Transparent(o)
 	}
 	its.menu = menuEntity
@@ -71,7 +71,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	its.pointer = new(pointerEntity)
 	its.pointer.io = object.FromText(e.Font(), ">", color.White)
 	object.Transparent(its.pointer.io)
-	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, 1*time.Second)
+	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, time.Second)
 	fromx, fromy := its.menu.options[0].GetPosition()
 	its.pointer.io.SetPosition(fromx-30, fromy)
 	its.px, its.py = its.pointer.io.GetPosition()
@@ -83,18 +83,18 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 
 	its.title.easer = transform.Easer(its.title.io, 0, -h+40, transform.EaseInOutCubic, 5*time.Second)
 
-	its.ch = transform.Chain(its.title.easer, its.pointer.fader, transform.Combine(its.menu.faders...))
+	its.ch = transform.Chain(
+		its.title.easer,
+		transform.Combine(
+			its.pointer.fader,
+			transform.Combine(its.menu.faders...)),
+	)
 
 	its.music.Play()
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
 	its.ch(dt)
-	/*its.title.easer(dt)
-	for _, fader := range its.menu.faders {
-		fader(dt)
-	}
-	its.pointer.fader(dt) */
 	return nil
 }
 

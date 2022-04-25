@@ -18,8 +18,8 @@ func Combine(fs ...ChangeFunc) ChangeFunc {
 	progress := 0.0
 	return func(dt float64) float64 {
 		for _, f := range fs {
-			progress += f(dt)
+			progress = f(dt)
 		}
-		return progress / float64(len(fs))
+		return progress
 	}
 }

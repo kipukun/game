@@ -27,7 +27,7 @@ func (p *player) move(dx int) {
 	}
 	sx, sy := p.io.GetPosition()
 	x, y := p.path[p.idx].GetPosition()
-	p.easer = transform.Easer(p.io, x-sx, y-sy, transform.Linear, time.Second)
+	p.easer = transform.Easer(p.io, x-sx, y-sy, transform.EaseInOutCubic, time.Second/2)
 }
 
 type PlayState struct {
@@ -35,7 +35,6 @@ type PlayState struct {
 	title  *object.Pinner
 	sheet  *tile.TileSheet
 	world  *ebiten.Image
-	dt     float64
 }
 
 func (ps *PlayState) Update(e *engine.Engine, dt float64) error {
@@ -47,7 +46,7 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ps.world, nil)
 	s.DrawImage(ps.player.io.Image())
 	s.DrawImage(ps.title.Image(e.Camera.Pos()))
-	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f, dt: %f", ps.player.idx, ebiten.CurrentTPS(), ps.dt))
+	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f", ps.player.idx, ebiten.CurrentTPS()))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) {
@@ -64,7 +63,7 @@ func (ps *PlayState) Init(e *engine.Engine) {
 	player.Fill(color.White)
 	p1.io = object.FromEbitenImage(player)
 	p1.io.SetPosition(worldObjects["blue_spaces"][0].GetPosition())
-	p1.easer = func(dt float64) float64 { return -1 }
+	p1.easer = func(dt float64) float64 { return 0 }
 
 	ps.player = p1
 
