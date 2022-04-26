@@ -3,7 +3,7 @@ package object
 import "errors"
 
 var (
-	NegativeSizeError = errors.New("object: negative size passed")
+	ErrNegativeSize = errors.New("object: negative size passed")
 )
 
 // Object represents some in-game object, with some
@@ -32,7 +32,7 @@ type obj struct {
 func NewEmpty(w, h int) (Object, error) {
 	o := new(obj)
 	if w < 0 || h < 0 {
-		return nil, NegativeSizeError
+		return nil, ErrNegativeSize
 	}
 	o.w = w
 	o.h = h
