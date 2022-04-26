@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/kipukun/game/engine/errors"
 )
 
 const (
@@ -27,10 +28,12 @@ var defaultConfig = &Config{
 }
 
 func NewConfigFromFile(file string) (*Config, error) {
+	var op errors.Op = "NewConfigFromFile"
+
 	dconf := defaultConfig
 	_, err := toml.DecodeFile(file, dconf)
 	if err != nil {
-		return nil, err
+		return nil, errors.Error(op, "error decoding TOML", err)
 	}
 	return dconf, nil
 }
