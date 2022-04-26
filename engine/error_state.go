@@ -17,10 +17,10 @@ func (es *errorState) Draw(e *Engine, s *ebiten.Image) {
 
 // Init is called when the State is first pushed onto the engine stack.
 func (es *errorState) Init(e *Engine) error {
-	return nil
+	return es.err
 }
 
 // Register is called everytime this state becomes the active state.
 func (es *errorState) Register(e *Engine) error {
-	return nil
+	return es.err
 }
