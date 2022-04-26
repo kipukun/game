@@ -2,7 +2,6 @@ package states
 
 import (
 	"image/color"
-	"log"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -40,15 +39,15 @@ func (its *IntroTitleState) Init(e *engine.Engine) error {
 	var err error
 	its.music, err = e.Audio.Player("assets/audio/lebron_james.mp3")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	its.menu_move, err = e.Audio.Player("assets/audio/menu_move.mp3")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	its.sel, err = e.Audio.Player("assets/audio/select.mp3")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	menu := []string{"PLAY", "OPTIONS", "QUIT"}
 	menuEntity := new(menuEntity)
@@ -68,7 +67,11 @@ func (its *IntroTitleState) Init(e *engine.Engine) error {
 	its.menu = menuEntity
 
 	its.pointer = new(pointerEntity)
-	its.pointer.io, _ = object.FromText(e.Font(), ">", color.White)
+	its.pointer.io, err = object.FromText(e.Font(), ">", color.White)
+	if err != nil {
+		return err
+	}
+
 	object.Transparent(its.pointer.io)
 	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, time.Second)
 	fromx, fromy := its.menu.options[0].GetPosition()
@@ -76,7 +79,10 @@ func (its *IntroTitleState) Init(e *engine.Engine) error {
 	its.px, its.py = its.pointer.io.GetPosition()
 
 	its.title = new(titleEntity)
-	its.title.io, _ = object.FromText(e.Font(), "JRPG", color.White)
+	its.title.io, err = object.FromText(e.Font(), "JRPG", color.White)
+	if err != nil {
+		return err
+	}
 	nx, _ := object.CenterH(w, its.title.io)
 	its.title.io.SetPosition(nx, h)
 

@@ -35,6 +35,8 @@ func (ops *OptionsState) Draw(e *engine.Engine, s *ebiten.Image) {
 }
 
 func (ops *OptionsState) Init(e *engine.Engine) error {
+	var err error
+
 	w, h := e.Size()
 	v := e.Registry.Get("volume", 10.0)
 	ops.volume = v.(float64)
@@ -43,11 +45,18 @@ func (ops *OptionsState) Init(e *engine.Engine) error {
 	for i := 0; i < int(ops.volume); i++ {
 		ops.vbar.Progress()
 	}
-	ops.instructions, _ = object.FromText(e.Font(), "ENTER TO CONFIRM, BACKSPACE TO EXIT", color.White)
+	ops.instructions, err = object.FromText(e.Font(), "ENTER TO CONFIRM, BACKSPACE TO EXIT", color.White)
+	if err != nil {
+		return err
+	}
 	_, sy := ops.instructions.Size()
 	ops.instructions.SetPosition(0, h-float64(sy)-10)
 	object.CenterH(w, ops.instructions)
-	ops.vlabel, _ = object.FromText(e.Font(), "VOLUME", color.White)
+	ops.vlabel, err = object.FromText(e.Font(), "VOLUME", color.White)
+	if err != nil {
+		return err
+	}
+
 	object.Middle(w, h, ops.vlabel)
 	object.Offset(ops.vlabel, ops.vbar, 50)
 
