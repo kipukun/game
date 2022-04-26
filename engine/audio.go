@@ -48,7 +48,10 @@ func (ap *audioHandler) SetVolume(v float64) {
 
 // Player is a helper method to give an audio.Player from an MP3 asset.
 func (ah *audioHandler) Player(path string) (*AudioPlayer, error) {
-	fd := asset(ah.files, path)
+	fd, err := asset(ah.files, path)
+	if err != nil {
+		return nil, err
+	}
 	bs, err := io.ReadAll(fd)
 	if err != nil {
 		return nil, err

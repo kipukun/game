@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kipukun/game/engine/errors"
 )
 
 type TileSheet struct {
@@ -28,16 +29,18 @@ func (ts *TileSheet) Tile(x, y int) (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return ebiten.NewImageFromImage(img), &ebiten.DrawImageOptions{}
 }
 
-func NewTileMap(s *TileSheet, layers [][]image.Point, rowsize int) *ebiten.Image {
+func NewTileMap(s *TileSheet, layers [][]image.Point, rowsize int) (*ebiten.Image, error) {
+	var op errors.Op = "NewTileMap"
+
 	if len(layers) < 1 {
-		panic("need at least one layer in call to NewTileMap")
+		return nil, errors.Error(op, "need at least one layer in call to NewTileMap", nil)
 	}
 	tx, ty := s.TileSize()
 	img := ebiten.NewImage(rowsize*tx, len(layers[0])/rowsize*ty)
 	last := len(layers[0])
 	for _, layer := range layers {
 		if len(layer) != last {
-			panic("all layers must be the same size")
+			return nil, errors.Error(op, "all layers must be the same size", nil)
 		}
 		row := 0
 		for i, pt := range layer {
@@ -50,5 +53,5 @@ func NewTileMap(s *TileSheet, layers [][]image.Point, rowsize int) *ebiten.Image
 		}
 		last = len(layer)
 	}
-	return img
+	return img, nil
 }

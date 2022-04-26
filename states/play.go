@@ -51,9 +51,25 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 
 func (ps *PlayState) Init(e *engine.Engine) error {
 	w, _ := e.Size()
+	tsheet, err := e.Asset("assets/tiles/tile_sheet.png")
+	if err != nil {
+		return err
+	}
+	tset, err := e.Asset("assets/tiles/tile_set.tsx")
+	if err != nil {
+		return err
+	}
+	ps.sheet, _ = tile.NewTileSheetFromTSX(tsheet, tset)
 
-	ps.sheet = tile.NewTileSheetFromTSX(e.Asset("assets/tiles/tile_sheet.png"), e.Asset("assets/tiles/tile_set.tsx"))
-	worldImg, worldObjects := tile.NewTileMapFromTMX(ps.sheet, e.Asset("assets/tiles/tile_map.tmx"))
+	tmap, err := e.Asset("assets/tiles/tile_map.tmx")
+	if err != nil {
+		return err
+	}
+
+	worldImg, worldObjects, err := tile.NewTileMapFromTMX(ps.sheet, tmap)
+	if err != nil {
+		return err
+	}
 	ps.world = worldImg
 
 	p1 := new(player)

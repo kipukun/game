@@ -58,7 +58,7 @@ func TestNewTSX(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	ts := NewTileSheetFromTSX(bytes.NewReader(bs), strings.NewReader(testSheetData))
+	ts, _ := NewTileSheetFromTSX(bytes.NewReader(bs), strings.NewReader(testSheetData))
 	fmt.Println(ts.TileSize())
 }
 

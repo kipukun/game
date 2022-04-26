@@ -87,7 +87,7 @@ func (e *Engine) KeepHandlers() {
 	e.hgph.keepFlag = true
 }
 
-func (e *Engine) Asset(path string) io.ReadSeekCloser {
+func (e *Engine) Asset(path string) (io.ReadSeekCloser, error) {
 	return asset(e.fs, path)
 }
 
@@ -119,7 +119,11 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	e.hkeyh = newInputHandler[ebiten.Key](true)
 	e.hgph = newInputHandler[ebiten.GamepadButton](true)
 
-	e.Camera = NewCamera()
+	e.Camera, err = NewCamera()
+	if err != nil {
+		return err
+	}
+
 	e.vscreen = ebiten.NewImage(c.Width*2, c.Height*2)
 
 	e.Registry = newRegistry(e.conf.SaveFile)
@@ -152,6 +156,10 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	return nil
 }
 
+func (e *Engine) err(err error) {
+	e.ChangeState(&errorState{err})
+}
+
 func (e *Engine) changed() {
 	e.keyh.deregister()
 	e.gph.deregister()
@@ -177,8 +185,16 @@ func (e *Engine) ChangeState(s State) {
 // PushState appends s to the top of the stack.
 func (e *Engine) PushState(s State) {
 	e.changed()
-	s.Init(e)
-	s.Register(e)
+	err := s.Init(e)
+	if err != nil {
+		e.err(err)
+		return
+	}
+	err = s.Register(e)
+	if err != nil {
+		e.err(err)
+		return
+	}
 	e.states = append(e.states, s)
 }
 
@@ -186,7 +202,10 @@ func (e *Engine) PushState(s State) {
 func (e *Engine) PopState() {
 	e.changed()
 	e.states = e.states[:len(e.states)-1]
-	head(e.states).Register(e)
+	err := head(e.states).Register(e)
+	if err != nil {
+		e.err(err)
+	}
 }
 
 // Update implements ebiten.Game

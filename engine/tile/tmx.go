@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/kipukun/game/engine/errors"
 	"github.com/kipukun/game/engine/object"
 )
 
@@ -63,54 +64,57 @@ type tmx struct {
 	} `xml:"layer"`
 }
 
-func NewTileSheetFromTSX(sheet, file io.Reader) *TileSheet {
+func NewTileSheetFromTSX(sheet, file io.Reader) (*TileSheet, error) {
+	var op errors.Op = "NewTileSheetFromTSX"
+
 	xdec := xml.NewDecoder(file)
 	var tsx *tsx
 	err := xdec.Decode(&tsx)
 	if err != nil {
-		panic(err)
+		return nil, errors.Error(op, "error decoding XML", err)
 	}
 	decimg, _, err := image.Decode(sheet)
 	if err != nil {
-		panic(err)
+		return nil, errors.Error(op, "error decoding image", err)
 	}
 	img := ebiten.NewImageFromImage(decimg)
 	dx, err := strconv.Atoi(tsx.Tilewidth)
 	if err != nil {
-		panic(err)
+		return nil, errors.Error(op, "error converting string to int", err)
 	}
 	dy, err := strconv.Atoi(tsx.Tileheight)
 	if err != nil {
-		panic(err)
+		return nil, errors.Error(op, "error converting string to int", err)
 	}
-	return NewTileSheet(img, dx, dy)
+	return NewTileSheet(img, dx, dy), nil
 }
 
-func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]object.Collection) {
-	om := make(map[string]object.Collection)
+func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]object.Collection, error) {
+	var op errors.Op = "NewTileMapFromTMX"
 
+	om := make(map[string]object.Collection)
 	xdec := xml.NewDecoder(file)
 	var tmx *tmx
 	err := xdec.Decode(&tmx)
 	if err != nil {
-		panic(err)
+		return nil, nil, errors.Error(op, "error decoding XML", err)
 	}
 
 	dx, err := strconv.Atoi(tmx.Tilewidth)
 	if err != nil {
-		panic(err)
+		return nil, nil, errors.Error(op, "error converting string to int", err)
 	}
 	dy, err := strconv.Atoi(tmx.Tileheight)
 	if err != nil {
-		panic(err)
+		return nil, nil, errors.Error(op, "error converting string to int", err)
 	}
 	width, err := strconv.Atoi(tmx.Width)
 	if err != nil {
-		panic(err)
+		return nil, nil, errors.Error(op, "error converting string to int", err)
 	}
 	height, err := strconv.Atoi(tmx.Height)
 	if err != nil {
-		panic(err)
+		return nil, nil, errors.Error(op, "error converting string to int", err)
 	}
 
 	img := ebiten.NewImage(dx*width, dy*height)
@@ -125,7 +129,7 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 		cdec.FieldsPerRecord = -1
 		records, err := cdec.ReadAll()
 		if err != nil {
-			panic(err)
+			return nil, nil, errors.Error(op, "error reading records", err)
 		}
 		for i, row := range records {
 			for j, pt := range row {
@@ -134,7 +138,7 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 				}
 				coord, err := strconv.Atoi(pt)
 				if err != nil {
-					panic(err)
+					return nil, nil, errors.Error(op, "error converting string to int", err)
 				}
 				if coord == 0 {
 					continue
@@ -154,5 +158,5 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 			}
 		}
 	}
-	return img, om
+	return img, om, nil
 }
