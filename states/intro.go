@@ -35,6 +35,10 @@ type IntroTitleState struct {
 	index                 int
 }
 
+func (its *IntroTitleState) String() string {
+	return "IntroTitleState"
+}
+
 func (its *IntroTitleState) Init(e *engine.Engine) error {
 	var err error
 	its.music, err = e.Audio.Player("assets/audio/lebron_james.mp3")

@@ -37,6 +37,10 @@ type PlayState struct {
 	world  *ebiten.Image
 }
 
+func (ps *PlayState) String() string {
+	return "PlayState"
+}
+
 func (ps *PlayState) Update(e *engine.Engine, dt float64) error {
 	ps.player.easer(dt)
 	return nil

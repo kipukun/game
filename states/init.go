@@ -8,6 +8,10 @@ import (
 type InitState struct {
 }
 
+func (is *InitState) String() string {
+	return "InitState"
+}
+
 func (is *InitState) Update(e *engine.Engine, dt float64) error {
 	its := new(IntroTitleState)
 	e.ChangeState(its)

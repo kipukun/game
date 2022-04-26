@@ -7,6 +7,10 @@ import (
 
 type BattleState struct{}
 
+func (bs *BattleState) String() string {
+	return "BattleState"
+}
+
 func (bs *BattleState) Update(e *engine.Engine) error {
 	return nil
 }

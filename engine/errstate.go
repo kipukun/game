@@ -1,11 +1,17 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type errorState struct {
 	err error
+}
+
+func (es *errorState) String() string {
+	return fmt.Sprintf("error state: %v", es.err)
 }
 
 func (es *errorState) Update(e *Engine, dt float64) error {
