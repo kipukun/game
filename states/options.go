@@ -34,7 +34,7 @@ func (ops *OptionsState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ops.vbar.Image())
 }
 
-func (ops *OptionsState) Init(e *engine.Engine) {
+func (ops *OptionsState) Init(e *engine.Engine) error {
 	w, h := e.Size()
 	v := e.Registry.Get("volume", 10.0)
 	ops.volume = v.(float64)
@@ -50,15 +50,19 @@ func (ops *OptionsState) Init(e *engine.Engine) {
 	ops.vlabel = object.FromText(e.Font(), "VOLUME", color.White)
 	object.Middle(w, h, ops.vlabel)
 	object.Offset(ops.vlabel, ops.vbar, 50)
+
+	return nil
 }
 
-func (ops *OptionsState) Register(e *engine.Engine) {
+func (ops *OptionsState) Register(e *engine.Engine) error {
 	e.RegisterKey(ebiten.KeyBackspace, func(e *engine.Engine) {
 		e.PopState()
 	})
 	e.RegisterKey(ebiten.KeyLeft, ops.volumedown)
 	e.RegisterKey(ebiten.KeyRight, ops.volumeup)
 	e.RegisterKey(ebiten.KeyEnter, ops.save)
+
+	return nil
 }
 
 func (ops *OptionsState) save(e *engine.Engine) {

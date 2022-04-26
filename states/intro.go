@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 	"github.com/kipukun/game/engine/transform"
@@ -37,7 +36,7 @@ type IntroTitleState struct {
 	index                 int
 }
 
-func (its *IntroTitleState) Init(e *engine.Engine) {
+func (its *IntroTitleState) Init(e *engine.Engine) error {
 	var err error
 	its.music, err = e.Audio.Player("assets/audio/lebron_james.mp3")
 	if err != nil {
@@ -91,6 +90,8 @@ func (its *IntroTitleState) Init(e *engine.Engine) {
 	)
 
 	its.music.Play()
+
+	return nil
 }
 
 func (its *IntroTitleState) Update(e *engine.Engine, dt float64) error {
@@ -104,10 +105,9 @@ func (its *IntroTitleState) Draw(e *engine.Engine, s *ebiten.Image) {
 		s.DrawImage(o.Image())
 	}
 	s.DrawImage(its.pointer.io.Image())
-	ebitenutil.DebugPrint(s, ebiten.GamepadName(0))
 }
 
-func (its *IntroTitleState) Register(e *engine.Engine) {
+func (its *IntroTitleState) Register(e *engine.Engine) error {
 	e.Camera.Reset()
 
 	e.RegisterKey(ebiten.KeyArrowDown, its.menudown)
@@ -116,6 +116,8 @@ func (its *IntroTitleState) Register(e *engine.Engine) {
 	e.RegisterButton(ebiten.GamepadButton0, its.menudown)
 	e.RegisterButton(ebiten.GamepadButton1, its.menuup)
 	e.RegisterButton(ebiten.GamepadButton2, its.o)
+
+	return nil
 }
 
 func (its *IntroTitleState) menudown(e *engine.Engine) {

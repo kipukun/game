@@ -37,10 +37,10 @@ type State interface {
 	Draw(e *Engine, s *ebiten.Image)
 
 	// Init is called when the State is first pushed onto the engine stack.
-	Init(e *Engine)
+	Init(e *Engine) error
 
 	// Register is called everytime this state becomes the active state.
-	Register(e *Engine)
+	Register(e *Engine) error
 }
 
 // Engine is the main game engine, which implements

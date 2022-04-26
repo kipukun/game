@@ -49,7 +49,7 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f", ps.player.idx, ebiten.CurrentTPS()))
 }
 
-func (ps *PlayState) Init(e *engine.Engine) {
+func (ps *PlayState) Init(e *engine.Engine) error {
 	w, _ := e.Size()
 
 	ps.sheet = tile.NewTileSheetFromTSX(e.Asset("assets/tiles/tile_sheet.png"), e.Asset("assets/tiles/tile_set.tsx"))
@@ -71,9 +71,11 @@ func (ps *PlayState) Init(e *engine.Engine) {
 	tx, ty := object.CenterH(w, title)
 	title.SetPosition(tx, ty+40)
 	ps.title = object.NewPinner(title)
+
+	return nil
 }
 
-func (ps *PlayState) Register(e *engine.Engine) {
+func (ps *PlayState) Register(e *engine.Engine) error {
 	e.RegisterKey(ebiten.KeyBackspace, func(e *engine.Engine) {
 		e.PopState()
 	})
@@ -104,4 +106,6 @@ func (ps *PlayState) Register(e *engine.Engine) {
 	e.RegisterKey(ebiten.KeySpace, func(e *engine.Engine) {
 		ps.player.move(1)
 	})
+
+	return nil
 }
