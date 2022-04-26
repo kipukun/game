@@ -7,6 +7,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/kipukun/game/engine/errors"
 	"golang.org/x/image/font"
 )
 
@@ -43,6 +44,7 @@ func (io *imgobj) SetOptions(opt *ebiten.DrawImageOptions) {
 
 // FromText returns an ImageObject that is rendered using the engine's font and the supplied text.
 func FromText(ft font.Face, t string, c color.Color) (ImageObject, error) {
+	var op errors.Op = "FromText"
 	var err error
 
 	io := new(imgobj)
@@ -51,7 +53,7 @@ func FromText(ft font.Face, t string, c color.Color) (ImageObject, error) {
 	io.img = ebiten.NewImage(r.Dx(), r.Dy())
 	io.Object, err = NewEmpty(r.Dx(), r.Dy())
 	if err != nil {
-		return nil, err
+		return nil, errors.Error(op, "error creating object", err)
 	}
 
 	text.Draw(io.img, t, ft, 0, r.Dy(), c)
@@ -60,16 +62,18 @@ func FromText(ft font.Face, t string, c color.Color) (ImageObject, error) {
 
 // FromAsset returns an object.ImageObject with the supplied asset, or nil and an error.
 func FromReader(r io.Reader, p string) (ImageObject, error) {
+	var op errors.Op = "FromReader"
+
 	io := new(imgobj)
 	io.opt = &ebiten.DrawImageOptions{}
 	img, _, err := image.Decode(r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Error(op, "error decoding image from Reader", err)
 	}
 	io.img = ebiten.NewImageFromImage(img)
 	io.Object, err = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
 	if err != nil {
-		return nil, err
+		return nil, errors.Error(op, "error creating object", err)
 	}
 
 	return io, nil
@@ -77,12 +81,14 @@ func FromReader(r io.Reader, p string) (ImageObject, error) {
 
 // FromImage returns an object.ImageObject from an image.Image.
 func FromImage(img image.Image) (ImageObject, error) {
+	var op errors.Op = "FromImage"
 	var err error
+
 	io := new(imgobj)
 	io.opt = &ebiten.DrawImageOptions{}
 	io.Object, err = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
 	if err != nil {
-		return nil, err
+		return nil, errors.Error(op, "error creating object", err)
 	}
 
 	io.img = ebiten.NewImageFromImage(img)
@@ -90,13 +96,14 @@ func FromImage(img image.Image) (ImageObject, error) {
 }
 
 func FromEbitenImage(eimg *ebiten.Image) (ImageObject, error) {
+	var op errors.Op = "FromEbitenImage"
 	var err error
 
 	io := new(imgobj)
 	io.img = eimg
 	io.Object, err = NewEmpty(eimg.Bounds().Dx(), eimg.Bounds().Dy())
 	if err != nil {
-		return nil, err
+		return nil, errors.Error(op, "error creating object", err)
 	}
 
 	io.opt = &ebiten.DrawImageOptions{}
