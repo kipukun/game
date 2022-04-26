@@ -12,7 +12,7 @@ type Camera struct {
 
 func NewCamera() *Camera {
 	c := new(Camera)
-	c.Object = object.NewEmpty(0, 0)
+	c.Object, _ = object.NewEmpty(0, 0)
 	return c
 }
 

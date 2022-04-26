@@ -42,14 +42,20 @@ func (io *imgobj) SetOptions(opt *ebiten.DrawImageOptions) {
 }
 
 // FromText returns an ImageObject that is rendered using the engine's font and the supplied text.
-func FromText(ft font.Face, t string, c color.Color) ImageObject {
+func FromText(ft font.Face, t string, c color.Color) (ImageObject, error) {
+	var err error
+
 	io := new(imgobj)
 	io.opt = &ebiten.DrawImageOptions{}
 	r := text.BoundString(ft, t)
 	io.img = ebiten.NewImage(r.Dx(), r.Dy())
-	io.Object = NewEmpty(r.Dx(), r.Dy())
+	io.Object, err = NewEmpty(r.Dx(), r.Dy())
+	if err != nil {
+		return nil, err
+	}
+
 	text.Draw(io.img, t, ft, 0, r.Dy(), c)
-	return io
+	return io, nil
 }
 
 // FromAsset returns an object.ImageObject with the supplied asset, or nil and an error.
@@ -61,26 +67,40 @@ func FromReader(r io.Reader, p string) (ImageObject, error) {
 		return nil, err
 	}
 	io.img = ebiten.NewImageFromImage(img)
-	io.Object = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
-	return io, nil
+	io.Object, err = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
+	if err != nil {
+		return nil, err
+	}
 
+	return io, nil
 }
 
 // FromImage returns an object.ImageObject from an image.Image.
-func FromImage(img image.Image) ImageObject {
+func FromImage(img image.Image) (ImageObject, error) {
+	var err error
 	io := new(imgobj)
 	io.opt = &ebiten.DrawImageOptions{}
-	io.Object = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
+	io.Object, err = NewEmpty(img.Bounds().Dx(), img.Bounds().Dy())
+	if err != nil {
+		return nil, err
+	}
+
 	io.img = ebiten.NewImageFromImage(img)
-	return io
+	return io, nil
 }
 
-func FromEbitenImage(eimg *ebiten.Image) ImageObject {
+func FromEbitenImage(eimg *ebiten.Image) (ImageObject, error) {
+	var err error
+
 	io := new(imgobj)
 	io.img = eimg
-	io.Object = NewEmpty(eimg.Bounds().Dx(), eimg.Bounds().Dy())
+	io.Object, err = NewEmpty(eimg.Bounds().Dx(), eimg.Bounds().Dy())
+	if err != nil {
+		return nil, err
+	}
+
 	io.opt = &ebiten.DrawImageOptions{}
-	return io
+	return io, nil
 }
 
 // Pinner pins an image to the screen.

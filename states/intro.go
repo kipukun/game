@@ -58,7 +58,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) error {
 	w, h := e.Size()
 
 	for i, item := range menu {
-		o := object.FromText(e.Font(), item, color.White)
+		o, _ := object.FromText(e.Font(), item, color.White)
 		nx, ny := object.Middle(w, h, o)
 		o.SetPosition(nx, ny+30*float64(i))
 		menuEntity.options = append(menuEntity.options, o)
@@ -68,7 +68,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) error {
 	its.menu = menuEntity
 
 	its.pointer = new(pointerEntity)
-	its.pointer.io = object.FromText(e.Font(), ">", color.White)
+	its.pointer.io, _ = object.FromText(e.Font(), ">", color.White)
 	object.Transparent(its.pointer.io)
 	its.pointer.fader = transform.Fader(its.pointer.io, transform.Linear, time.Second)
 	fromx, fromy := its.menu.options[0].GetPosition()
@@ -76,7 +76,7 @@ func (its *IntroTitleState) Init(e *engine.Engine) error {
 	its.px, its.py = its.pointer.io.GetPosition()
 
 	its.title = new(titleEntity)
-	its.title.io = object.FromText(e.Font(), "JRPG", color.White)
+	its.title.io, _ = object.FromText(e.Font(), "JRPG", color.White)
 	nx, _ := object.CenterH(w, its.title.io)
 	its.title.io.SetPosition(nx, h)
 

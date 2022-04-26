@@ -1,5 +1,11 @@
 package object
 
+import "errors"
+
+var (
+	NegativeSizeError = errors.New("object: negative size passed")
+)
+
 // Object represents some in-game object, with some
 // bounding box and an ability to update its position.
 type Object interface {
@@ -23,11 +29,14 @@ type obj struct {
 }
 
 // NewEmpty returns an empty Object with its width and height set to w and h, respectively.
-func NewEmpty(w, h int) Object {
+func NewEmpty(w, h int) (Object, error) {
 	o := new(obj)
+	if w < 0 || h < 0 {
+		return nil, NegativeSizeError
+	}
 	o.w = w
 	o.h = h
-	return o
+	return o, nil
 }
 
 func (o *obj) Update() {

@@ -61,13 +61,13 @@ func (ps *PlayState) Init(e *engine.Engine) error {
 	p1.path = worldObjects["blue_spaces"]
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
-	p1.io = object.FromEbitenImage(player)
+	p1.io, _ = object.FromEbitenImage(player)
 	p1.io.SetPosition(worldObjects["blue_spaces"][0].GetPosition())
 	p1.easer = func(dt float64) float64 { return 0 }
 
 	ps.player = p1
 
-	title := object.FromText(e.Font(), "PLAYER 1 | ¥: 0 / $: 0", color.White)
+	title, _ := object.FromText(e.Font(), "PLAYER 1 | ¥: 0 / $: 0", color.White)
 	tx, ty := object.CenterH(w, title)
 	title.SetPosition(tx, ty+40)
 	ps.title = object.NewPinner(title)

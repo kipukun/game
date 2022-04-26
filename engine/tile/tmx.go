@@ -142,7 +142,7 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 				t, o := s.Tile(coord, 0)
 				posx, posy := float64(j%width*dx), float64(i*dy)
 				if objectLayer {
-					obj := object.FromEbitenImage(t)
+					obj, _ := object.FromEbitenImage(t)
 					obj.SetPosition(posx, posy)
 					if om[prefix] == nil {
 						om[prefix] = object.NewCollection()

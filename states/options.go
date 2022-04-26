@@ -18,7 +18,7 @@ type OptionsState struct {
 func progressBar(e *engine.Engine, len int) object.Animation {
 	fs := make([]object.ImageObject, 0)
 	for i := 0; i <= len; i++ {
-		f := object.FromText(e.Font(), "["+strings.Repeat("|", i), color.White)
+		f, _ := object.FromText(e.Font(), "["+strings.Repeat("|", i), color.White)
 		fs = append(fs, f)
 	}
 	return object.NewAnimationFromImages(fs)
@@ -43,11 +43,11 @@ func (ops *OptionsState) Init(e *engine.Engine) error {
 	for i := 0; i < int(ops.volume); i++ {
 		ops.vbar.Progress()
 	}
-	ops.instructions = object.FromText(e.Font(), "ENTER TO CONFIRM, BACKSPACE TO EXIT", color.White)
+	ops.instructions, _ = object.FromText(e.Font(), "ENTER TO CONFIRM, BACKSPACE TO EXIT", color.White)
 	_, sy := ops.instructions.Size()
 	ops.instructions.SetPosition(0, h-float64(sy)-10)
 	object.CenterH(w, ops.instructions)
-	ops.vlabel = object.FromText(e.Font(), "VOLUME", color.White)
+	ops.vlabel, _ = object.FromText(e.Font(), "VOLUME", color.White)
 	object.Middle(w, h, ops.vlabel)
 	object.Offset(ops.vlabel, ops.vbar, 50)
 
