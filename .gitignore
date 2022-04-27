@@ -1,6 +1,6 @@
 *.swp
 *.exe
-*.aseprite
 *.save
 *.toml
 bin/
+*:Zone.Identifier
