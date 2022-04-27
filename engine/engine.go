@@ -143,8 +143,8 @@ func (e *Engine) Init(ctx context.Context, c *Config, fsys fs.FS) error {
 	return nil
 }
 
-func (e *Engine) err(err error) {
-	e.ChangeState(&errorState{err})
+func (e *Engine) stop(name string, err error) {
+	e.ChangeState(&errorState{name, err})
 }
 
 func (e *Engine) changed() {
@@ -161,8 +161,16 @@ func (e *Engine) ToggleDebugMode() {
 // ChangeState sets the currently running state to s.
 func (e *Engine) ChangeState(s State) {
 	e.changed()
-	s.Init(e)
-	s.Register(e)
+	err := s.Init(e)
+	if err != nil {
+		e.stop(s.String(), err)
+		return
+	}
+	err = s.Register(e)
+	if err != nil {
+		e.stop(s.String(), err)
+		return
+	}
 	if len(e.states) == 0 {
 		e.states = make([]State, 1)
 	}
@@ -174,12 +182,12 @@ func (e *Engine) PushState(s State) {
 	e.changed()
 	err := s.Init(e)
 	if err != nil {
-		e.err(err)
+		e.stop(s.String(), err)
 		return
 	}
 	err = s.Register(e)
 	if err != nil {
-		e.err(err)
+		e.stop(s.String(), err)
 		return
 	}
 	e.states = append(e.states, s)
@@ -191,7 +199,8 @@ func (e *Engine) PopState() {
 	e.states = e.states[:len(e.states)-1]
 	err := head(e.states).Register(e)
 	if err != nil {
-		e.err(err)
+		e.stop(head(e.states).String(), err)
+		return
 	}
 }
 
