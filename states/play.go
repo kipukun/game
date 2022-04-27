@@ -1,12 +1,10 @@
 package states
 
 import (
-	"fmt"
 	"image/color"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/kipukun/game/engine"
 	"github.com/kipukun/game/engine/object"
 	"github.com/kipukun/game/engine/tile"
@@ -50,7 +48,6 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 	s.DrawImage(ps.world, nil)
 	s.DrawImage(ps.player.io.Image())
 	s.DrawImage(ps.title.Image(e.Camera.Pos()))
-	ebitenutil.DebugPrint(s, fmt.Sprintf("index: %d, TPS: %f", ps.player.idx, ebiten.CurrentTPS()))
 }
 
 func (ps *PlayState) Init(e *engine.Engine) error {
