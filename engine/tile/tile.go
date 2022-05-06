@@ -8,14 +8,16 @@ import (
 )
 
 type TileSheet struct {
-	sheet  *ebiten.Image
-	dx, dy int
+	sheet   *ebiten.Image
+	dx, dy  int
+	columns int
 }
 
-func NewTileSheet(s *ebiten.Image, dx, dy int) *TileSheet {
+func NewTileSheet(s *ebiten.Image, dx, dy, columns int) *TileSheet {
 	ts := new(TileSheet)
 	ts.sheet = s
 	ts.dx, ts.dy = dx, dy
+	ts.columns = columns
 	return ts
 }
 
@@ -23,9 +25,13 @@ func (ts *TileSheet) TileSize() (int, int) {
 	return ts.dx, ts.dy
 }
 
+func (ts *TileSheet) Columns() int {
+	return ts.columns
+}
+
 func (ts *TileSheet) Tile(x, y int) (*ebiten.Image, *ebiten.DrawImageOptions) {
-	x = x - 1
-	img := ts.sheet.SubImage(image.Rect(ts.dx*x, ts.dy*y, ts.dx*x+ts.dx, ts.dy*y+ts.dy))
+	r := image.Rect(ts.dx*x, ts.dy*y, (ts.dx*x)+ts.dx, (ts.dy*y)+ts.dy)
+	img := ts.sheet.SubImage(r)
 	return ebiten.NewImageFromImage(img), &ebiten.DrawImageOptions{}
 }
 

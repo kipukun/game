@@ -51,35 +51,33 @@ func (ps *PlayState) Draw(e *engine.Engine, s *ebiten.Image) {
 }
 
 func (ps *PlayState) Init(e *engine.Engine) error {
-	w, _ := e.Size()
-	tsheet, err := e.Asset("assets/tiles/tile_sheet.png")
+	w, h := e.Size()
+	tsheet, err := e.Asset("assets/tiles/set.png")
 	if err != nil {
 		return err
 	}
-	tset, err := e.Asset("assets/tiles/tile_set.tsx")
+	tset, err := e.Asset("assets/tiles/tiles.tsx")
 	if err != nil {
 		return err
 	}
 	ps.sheet, _ = tile.NewTileSheetFromTSX(tsheet, tset)
 
-	tmap, err := e.Asset("assets/tiles/tile_map.tmx")
+	tmap, err := e.Asset("assets/tiles/map.tmx")
 	if err != nil {
 		return err
 	}
 
-	worldImg, worldObjects, err := tile.NewTileMapFromTMX(ps.sheet, tmap)
+	worldImg, _, err := tile.NewTileMapFromTMX(ps.sheet, tmap)
 	if err != nil {
 		return err
 	}
 	ps.world = worldImg
 
 	p1 := new(player)
-	worldObjects["blue_spaces"].Sort()
-	p1.path = worldObjects["blue_spaces"]
 	player := ebiten.NewImage(10, 10)
 	player.Fill(color.White)
 	p1.io, _ = object.FromEbitenImage(player)
-	p1.io.SetPosition(worldObjects["blue_spaces"][0].GetPosition())
+	object.Middle(w, h, p1.io)
 	p1.easer = func(dt float64) float64 { return 0 }
 
 	ps.player = p1

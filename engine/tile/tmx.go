@@ -3,6 +3,7 @@ package tile
 import (
 	"encoding/csv"
 	"encoding/xml"
+	"fmt"
 	"image"
 	_ "image/png"
 	"io"
@@ -86,7 +87,11 @@ func NewTileSheetFromTSX(sheet, file io.Reader) (*TileSheet, error) {
 	if err != nil {
 		return nil, errors.Error(op, "error converting string to int", err)
 	}
-	return NewTileSheet(img, dx, dy), nil
+	c, err := strconv.Atoi(tsx.Columns)
+	if err != nil {
+		return nil, errors.Error(op, "error converting string to int", err)
+	}
+	return NewTileSheet(img, dx, dy, c), nil
 }
 
 func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]object.Collection, error) {
@@ -117,6 +122,8 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 		return nil, nil, errors.Error(op, "error converting string to int", err)
 	}
 
+	fmt.Println(s.Columns())
+
 	img := ebiten.NewImage(dx*width, dy*height)
 	for _, layer := range tmx.Layer {
 		var objectLayer bool
@@ -131,6 +138,10 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 		if err != nil {
 			return nil, nil, errors.Error(op, "error reading records", err)
 		}
+		first, err := strconv.Atoi(tmx.Tileset.Firstgid)
+		if err != nil {
+			return nil, nil, err
+		}
 		for i, row := range records {
 			for j, pt := range row {
 				if j+1 == len(row) && i+1 != len(records) {
@@ -140,10 +151,11 @@ func NewTileMapFromTMX(s *TileSheet, file io.Reader) (*ebiten.Image, map[string]
 				if err != nil {
 					return nil, nil, errors.Error(op, "error converting string to int", err)
 				}
-				if coord == 0 {
+				coord = coord - first
+				if coord < 0 {
 					continue
 				}
-				t, o := s.Tile(coord, 0)
+				t, o := s.Tile(coord%s.Columns(), coord/s.Columns())
 				posx, posy := float64(j%width*dx), float64(i*dy)
 				if objectLayer {
 					obj, _ := object.FromEbitenImage(t)
